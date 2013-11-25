@@ -1,0 +1,46 @@
+package captSummary
+
+# This is required for the documentation.
+manager Clark McGrew <clark.mcgrew@stonybrook.edu>
+author Clark McGrew <clark.mcgrew@stonybrook.edu>
+
+# The packages used by this one.  Only direct dependencies should be
+# included. 
+use captEvent
+use testBase
+use captainPolicy 
+
+# Build the documentation.
+document doxygen doxygen -group=documentation *.cxx *.hxx ../doc/*.dox
+
+# Build the version file.
+document version version *.cxx *.hxx *_LinkDef.h
+
+# Build the registration prototype.
+document register register 
+macro_append register_dependencies " version "
+
+# Build all of the ROOT dictionaries.
+document linkdef linkdef *.hxx *_LinkDef.h
+macro_append linkdef_dependencies " register "
+
+# Build information used by packages that use this one.
+macro captSummary_cppflags " -DCAPTSUMMARY_USED "
+macro captSummary_linkopts " -L$(CAPTSUMMARYROOT)/$(captSummary_tag) "
+macro_append captSummary_linkopts " -lcaptSummary "
+macro captSummary_stamps " $(captSummarystamp) $(linkdefstamp) "
+
+# The paths to find this library and it's executables
+path_remove LD_LIBRARY_PATH "$(CAPTSUMMARYROOT)" 
+path_prepend LD_LIBRARY_PATH "$(CAPTSUMMARYROOT)/$(captSummary_tag)"
+
+path_remove PATH "$(CAPTSUMMARYROOT)"
+path_prepend PATH "$(CAPTSUMMARYROOT)/$(captSummary_tag)"
+
+# Build the library for this package.
+library captSummary *.cxx *.hxx $(bin)dict/*.cxx
+macro_append captSummary_dependencies " linkdef "
+
+# Build the application for this package.
+application CAPTAINSUMMARY ../app/captainSummary.cxx
+macro_append CAPTAINSUMMARY_dependencies " captSummary " 
