@@ -13,7 +13,7 @@ CP::TAnalysisModuleBase::TAnalysisModuleBase():
 
 CP::TAnalysisModuleBase::~TAnalysisModuleBase() {}
 
-Bool_t CP::TAnalysisModuleBase::Configure(std::string &option) {
+Bool_t CP::TAnalysisModuleBase::Configure(const std::string &option) {
     CaptError("No configurable options defined for this class");
     return kFALSE;
 }
@@ -51,12 +51,12 @@ bool CP::TAnalysisModuleBase::Process(CP::TEvent& event) {
     if (!FillTree(event)) {
         throw EAnalysisFailure();
     }
-    fPreselected = IsFullEventWorthSaving(event);
+    fPreselected = SaveFullEvent(event);
     fOutputTree->Fill();
     return fPreselected;
 }
 
-bool CP::TAnalysisModuleBase::IsFullEventWorthSaving(CP::TEvent& event){
+bool CP::TAnalysisModuleBase::SaveFullEvent(CP::TEvent& event){
     // Do not save the main event tree entry by default, just the analysis one
     return false; 
 }

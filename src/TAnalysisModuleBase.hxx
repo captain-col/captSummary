@@ -89,17 +89,22 @@ public:
     /// tree with the first event, as Process() will also be called.  
     virtual Bool_t ProcessFirstEvent(CP::TEvent&);
 
-    /// Whether the module thinks it is worth saving the entire event
-    /// tree entry for this event.  The summary can be used for event
-    /// pre-selection in this way.
-    virtual bool IsFullEventWorthSaving(CP::TEvent& event);
+    /// Return true with the full event informat should be saved.  A lot of
+    /// the information in the full event isn't needed for an analysis, so
+    /// analysis modules build data summary trees (dst) based on the full
+    /// event information.  However sometimes it is useful to save a
+    /// preselected sample of the full events to allow further reconstruction.
+    /// If this method returns true, then the full event information will also
+    /// be saved to the output file.  Note: This causes the output files to be
+    /// much larger.
+    virtual bool SaveFullEvent(CP::TEvent& event);
 
     /// A function that allows the module to be configured from an external
     /// class without any dependencies.  Should be overridden with a function
     /// that responds to the string option, and returns kTRUE if configuration
     /// succeeded.  Used in TAnalysisLoop.cxx for options of the form: -O
     /// TTruthTrajectoriesModule=SaveAll
-    virtual Bool_t Configure(std::string &option);
+    virtual Bool_t Configure(const std::string &option);
 
 public:
     /////////////////////////////////////////////////////////////////////
