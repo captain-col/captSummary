@@ -1,6 +1,6 @@
 #include "TAnalysisLoop.hxx"
 #include "TAnalysisModuleBase.hxx"
-#include "TTruthTrajectoriesModule.hxx"
+#include "TG4TrajectoriesModule.hxx"
 
 #include <TRootInput.hxx>
 #include <TRootOutput.hxx>
@@ -25,8 +25,8 @@ CP::TAnalysisLoop::TAnalysisLoop()
 
     // Add the "must have" modules.
     // fAnalysisModules.push_back(new CP::TBasicHeaderModule);
-    fAnalysisModules.push_back(new CP::TTruthTrajectoriesModule);
-    // fAnalysisModules.push_back(new CP::TTruthVerticesModule);
+    fAnalysisModules.push_back(new CP::TG4TrajectoriesModule);
+    // fAnalysisModules.push_back(new CP::TG4VerticesModule);
 
     // Save pointer to these modules; this has to be done, because we
     // no longer have access to the input file pointer, except in BeginFile.
