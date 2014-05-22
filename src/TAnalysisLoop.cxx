@@ -1,5 +1,6 @@
 #include "TAnalysisLoop.hxx"
 #include "TAnalysisModuleBase.hxx"
+#include "TTruthTrajectoriesModule.hxx"
 
 #include <TRootInput.hxx>
 #include <TRootOutput.hxx>
@@ -24,7 +25,7 @@ CP::TAnalysisLoop::TAnalysisLoop()
 
     // Add the "must have" modules.
     // fAnalysisModules.push_back(new CP::TBasicHeaderModule);
-    // fAnalysisModules.push_back(new CP::TTruthTrajectoriesModule);
+    fAnalysisModules.push_back(new CP::TTruthTrajectoriesModule);
     // fAnalysisModules.push_back(new CP::TTruthVerticesModule);
 
     // Save pointer to these modules; this has to be done, because we
@@ -81,7 +82,7 @@ bool CP::TAnalysisLoop::operator () (CP::TEvent& event) {
         rooModIter = modIter;
         CP::TAnalysisModuleBase *mod = *modIter;
         if (mod->IsEnabled()) {
-            CaptVerbose("Processing with mod" << mod->GetName());
+            CaptLog("Processing with mod" << mod->GetName());
             try {
                 if (fEventCount == 1) {
                     // As a special case, call ProcessFirstEvent() for the

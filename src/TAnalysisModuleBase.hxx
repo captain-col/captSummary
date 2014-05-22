@@ -61,6 +61,7 @@ protected:
     /////////////////////////////////////////////////////////////////////
     // These are methods that must be overridden in the derived modules.
     /////////////////////////////////////////////////////////////////////
+
     /// Initialize Module.  This is where the internal fields of the modules
     /// should be set-up, but don't create the branches.  Modules might not
     /// need to do any thing in this method, but it must be defined.
