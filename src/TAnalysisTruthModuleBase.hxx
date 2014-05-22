@@ -3,23 +3,23 @@
 
 #include "TAnalysisModuleBase.hxx"
 namespace CP {
-  class TAnalysisTruthModuleBase;
+    class TAnalysisTruthModuleBase;
 };
 
 /// A base class for analysis output modules which contain event truth
 /// information.  This class adds very little extra functionality, but
 /// GetTreeType is defined to return kTruth.
 class CP::TAnalysisTruthModuleBase : public TAnalysisModuleBase {
-  public:
+public:
 
     // Define the tree type.  This sets the tree directory name.
     virtual EType GetTreeType() const { return kTruth;}
 
-  protected:
+protected:
 
     virtual ~TAnalysisTruthModuleBase();
 
-  private:
+private:
 
     ClassDef(TAnalysisTruthModuleBase,1);
 

@@ -61,7 +61,6 @@ protected:
     /////////////////////////////////////////////////////////////////////
     // These are methods that must be overridden in the derived modules.
     /////////////////////////////////////////////////////////////////////
-protected:
     /// Initialize Module.  This is where the internal fields of the modules
     /// should be set-up, but don't create the branches.  Modules might not
     /// need to do any thing in this method, but it must be defined.
@@ -74,20 +73,21 @@ protected:
     /// everything went well. Otherwise, the module may be disabled!
     virtual bool FillTree(CP::TEvent&) = 0;
 
+public:
     /////////////////////////////////////////////////////////////////////
     // These are methods might be overriden in the derived modules.  The
     // mostly control the behavior of the module.
     /////////////////////////////////////////////////////////////////////
-public:
+
     /// Is the module is enabled by default. Default is to enable module. To
     /// set to disable override this method in the derived module.
-    virtual Bool_t IsEnabledByDefault() const {return kTRUE;}
+    virtual bool IsEnabledByDefault() const {return kTRUE;}
     
     /// Is called after the first event is loaded in.  This is a good time to
     /// save persistent quantities in the module's data members, which will be
     /// retrievable from the output file.  Not intended for filling in the
     /// tree with the first event, as Process() will also be called.  
-    virtual Bool_t ProcessFirstEvent(CP::TEvent&);
+    virtual bool ProcessFirstEvent(CP::TEvent&);
 
     /// Return true with the full event informat should be saved.  A lot of
     /// the information in the full event isn't needed for an analysis, so
@@ -104,7 +104,7 @@ public:
     /// that responds to the string option, and returns kTRUE if configuration
     /// succeeded.  Used in TAnalysisLoop.cxx for options of the form: -O
     /// TTruthTrajectoriesModule=SaveAll
-    virtual Bool_t Configure(const std::string &option);
+    virtual bool Configure(const std::string &option);
 
 public:
     /////////////////////////////////////////////////////////////////////
@@ -120,38 +120,31 @@ public:
     
     /// Returns the name of the directory which the output of a particular
     /// module will be saved in.
-    std::string const GetDirectoryName() const;
-    
+    std::string GetDirectoryName() const;
 
     /// Sets whether the module is enabled. This only refer to modules which
     /// have been included for consideration by being instantiated in
     /// TAnalysisLoop.cxx or similar.
-    virtual void SetEnabled(Bool_t yesorno = kTRUE) {
-        fIsEnabled = yesorno; 
-    }
+    virtual void SetEnabled(bool yesorno = kTRUE) {fIsEnabled = yesorno;}
 
     /// Disables the module. Is called when an exception is thrown inside the
     /// module.
-    void SetDisabled() {
-        SetEnabled(kFALSE);
-    }
+    void SetDisabled() {SetEnabled(kFALSE);}
     
-    /// Sets whether the module should call IsFullEventWorthSaving() function
+    /// Sets whether the analysis loop should call SaveFullEvent() function
     /// for each event, to decide if the full event info for that event
     /// should be saved in the output
-    void SetUsedForPreselection(Bool_t yesorno = kTRUE) { 
+    void SetUsedForPreselection(bool yesorno = kTRUE) { 
         fIsUsedForPreselection = yesorno; 
     }
     
     /// Whether the module is enable or not.
-    Bool_t IsEnabled() const { return fIsEnabled; }
+    bool IsEnabled() const {return fIsEnabled;}
     
-    /// Whether the module should call IsFullEventWorthSaving() function for
+    /// Whether the analysis loop should call SaveFullEvent() function for
     /// each event, to decide if the full event info for that event should
     /// be saved in the output
-    Bool_t IsUsedForPreselection() const { 
-        return fIsUsedForPreselection;
-    }
+    bool IsUsedForPreselection() const {return fIsUsedForPreselection;}
     
     /// Prints a simple message describing the module.  Should be overridden
     /// if more detail is needed (it's probably not needed).
@@ -162,25 +155,25 @@ public:
     /// InitializeBranches().
     void Initialize(TTree *tree);
     
-    /// Gets the run and event IDs and calls FillTree with the event, and then
-    /// actually calls fOutputTree->Fill.  This doesn't need to be changed by
-    /// most modules.
+    /// Gets the run and event Id, calls FillTree and SaveFullEvent with the
+    /// event, and then calls fOutputTree->Fill.  This doesn't need to be
+    /// changed by most modules.
     virtual bool Process(CP::TEvent& event);
 
     /// ROOT output parameters, usually no need to touch
-    Int_t GetBufferSize() {return fBufferSize;}
+    int GetBufferSize() const {return fBufferSize;}
 
     /// ROOT output parameters, usually no need to touch
-    void SetBufferSize(Int_t  buffersize) {fBufferSize =  buffersize;}
+    void SetBufferSize(int  buffersize) {fBufferSize =  buffersize;}
 
     /// ROOT output parameters, usually no need to touch
-    Int_t GetSplitLevel() {return fSplitLevel;}
+    int GetSplitLevel() const {return fSplitLevel;}
 
     /// ROOT output parameters, usually no need to touch
-    void SetSplitLevel(Int_t splitlevel) {fSplitLevel = splitlevel;}
+    void SetSplitLevel(int splitlevel) {fSplitLevel = splitlevel;}
 
     /// The output tree
-    TTree const * GetOutputTree() const {return fOutputTree;}
+    TTree * const GetOutputTree() const {return fOutputTree;}
 
     /// Set the location of a directory where the module can look for extra
     /// files.
@@ -188,7 +181,7 @@ public:
     
     /// Get the location of a directory where the module can look for extra
     /// files.
-    const std::string& GetInputDirectory() const {return fInputDirectory;}
+    std::string GetInputDirectory() const {return fInputDirectory;}
 
     /// The derived module can override this if it needs access to the file
     /// pointer.  Examples of modules that will need the file pointer are the
@@ -196,34 +189,32 @@ public:
     virtual void SetBeginFile(TFile* file) {}
 
 private: 
-    /// This is true if the module should be run.
-    Bool_t fIsEnabled;
+    /// The tree that will be filled.
+    TTree* fOutputTree;
+
+    /// This is true if the module should be used in this run.
+    bool fIsEnabled;
 
     /// This is true if the module might cause full events to be saved to the
     /// output.
-    Bool_t fIsUsedForPreselection;
-
-    /// Keep the root tree handy.
-    TTree *fOutputTree;
+    bool fIsUsedForPreselection;
 
     /// Buffer Size for TBranch. Has a default value that
     /// can be changed per module.
-    Int_t fBufferSize;  // Buffer Size for TBranch.
+    int fBufferSize;  // Buffer Size for TBranch.
 
     /// Split Level for TBranch.
-    Int_t fSplitLevel; 
+    int fSplitLevel; 
 
     ///////////////////////////////////////////////////////////////////
     /// Default Tree Entries
-    Int_t fRunID;
-    Int_t fSubrunID;
-    Int_t fEventID;
-    Int_t fPreselected;
+    int fRunID;
+    int fSubrunID;
+    int fEventID;
+    int fPreselected;
 
     /// An input directory where analysis modules can search for extra files.
     std::string fInputDirectory;    
-
-private:
 
     ClassDef(TAnalysisModuleBase,1);
 

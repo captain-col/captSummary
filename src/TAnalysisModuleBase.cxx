@@ -19,7 +19,7 @@ Bool_t CP::TAnalysisModuleBase::Configure(const std::string &option) {
 }
 
 
-std::string const CP::TAnalysisModuleBase::GetDirectoryName() const {
+std::string CP::TAnalysisModuleBase::GetDirectoryName() const {
     switch (GetTreeType()) {
     case kHeader: return "HeaderDir";
     case kTruth: return "TruthDir";

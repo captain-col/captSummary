@@ -3,21 +3,21 @@
 
 #include "TAnalysisModuleBase.hxx"
 namespace CP {
-  class TAnalysisHeaderModuleBase;
+    class TAnalysisHeaderModuleBase;
 };
 
 /// A base class for analysis output modules which contain event header
 /// information.  This class adds very little extra functionality, but
 /// GetTreeType is defined to return kHeader.
 class CP::TAnalysisHeaderModuleBase : public TAnalysisModuleBase {
-  public:
+public:
     // Define the tree type.  This sets the tree directory name.
     EType GetTreeType() const { return kHeader;}
-
-  protected:
+    
+protected:
     virtual ~TAnalysisHeaderModuleBase() {}
-
-  private:
+    
+private:
     ClassDef(TAnalysisHeaderModuleBase,1);
 };
 #endif

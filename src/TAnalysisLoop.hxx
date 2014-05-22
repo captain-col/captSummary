@@ -32,7 +32,7 @@ public:
     /// has "-O [name]" without a value, then the value string will be equal
     /// to "".  This must return false if the option was not correctly
     /// processed.
-    virtual bool SetOption(std::string,std::string);
+    virtual bool SetOption(std::string, std::string);
 
     /// Called for each event inside the event loop, and returns true if the
     /// event should be saved to the output file.  If the remainder of the
@@ -108,6 +108,4 @@ private:
     /// Boolean to control validation mode
     bool fValidation;
  
-    // TGRooTrackerVtxModule *fGRooTracker;
-    // TNRooTrackerVtxModule *fNRooTracker;
 };
