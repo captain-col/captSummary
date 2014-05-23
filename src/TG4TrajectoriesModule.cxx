@@ -1,4 +1,5 @@
-#include "TTruthTrajectoriesModule.hxx"
+#include "TG4TrajectoriesModule.hxx"
+#include "dstUtils.hxx"
 
 #include <HEPUnits.hxx>
 #include <HEPConstants.hxx>
@@ -12,47 +13,47 @@
 #include <set>
 
 
-ClassImp(CP::TTruthTrajectoriesModule);
-ClassImp(CP::TTruthTrajectoriesModule::TTruthTrajectory);
+ClassImp(CP::TG4TrajectoriesModule);
+ClassImp(CP::TG4TrajectoriesModule::TG4Trajectory);
 
 //
-// TTruthTrajectoriesModule
+// TG4TrajectoriesModule
 //
-CP::TTruthTrajectoriesModule::TTruthTrajectoriesModule(
+CP::TG4TrajectoriesModule::TG4TrajectoriesModule(
     const char *name, const char *title)
     : fSaveParentChain(kTRUE) {
     SetNameTitle(name, title);
     SetEnabled();
 }
 
-CP::TTruthTrajectoriesModule::~TTruthTrajectoriesModule() {}
+CP::TG4TrajectoriesModule::~TG4TrajectoriesModule() {}
 
-Bool_t CP::TTruthTrajectoriesModule::Configure(const std::string& option) {
+Bool_t CP::TG4TrajectoriesModule::Configure(const std::string& option) {
     if (option == "saveall" || option == "SaveAll") {
-        CaptInfo("Setting TTruthTrajectoriesModule to Save All Trajectories");
+        CaptInfo("Setting TG4TrajectoriesModule to Save All Trajectories");
         return kTRUE;
     }
     return kFALSE;
 }
 
-void CP::TTruthTrajectoriesModule::InitializeModule() {} 
+void CP::TG4TrajectoriesModule::InitializeModule() {} 
 
-void CP::TTruthTrajectoriesModule::InitializeBranches() {
+void CP::TG4TrajectoriesModule::InitializeBranches() {
     GetOutputTree()->Branch(
         "Trajectory",
-        "std::vector<CP::TTruthTrajectoriesModule::TTruthTrajectory>", 
+        "std::vector<CP::TG4TrajectoriesModule::TG4Trajectory>", 
         &fTrajectories, 
         GetBufferSize(), GetSplitLevel());
 }
 
-Bool_t CP::TTruthTrajectoriesModule::ProcessFirstEvent(CP::TEvent& event) {
+Bool_t CP::TG4TrajectoriesModule::ProcessFirstEvent(CP::TEvent& event) {
     bool IsDataFile = event.GetContext().IsDetector();
     // This only gets run on MC files.
     if (IsDataFile) throw CP::EDataFile();
     return true;
 }
 
-void CP::TTruthTrajectoriesModule::FillSaveList(
+void CP::TG4TrajectoriesModule::FillSaveList(
     CP::THandle<CP::TG4TrajectoryContainer> trajectories) {
 	
     // First go through the entire trajectory container and mark the
@@ -76,13 +77,13 @@ void CP::TTruthTrajectoriesModule::FillSaveList(
 }
 
 namespace {
-    bool trajLessThan(const CP::TTruthTrajectoriesModule::TTruthTrajectory& a,
-                      const CP::TTruthTrajectoriesModule::TTruthTrajectory& b) {
+    bool trajLessThan(const CP::TG4TrajectoriesModule::TG4Trajectory& a,
+                      const CP::TG4TrajectoriesModule::TG4Trajectory& b) {
         return a.TrajId < b.TrajId;
     } 
 }
 
-bool CP::TTruthTrajectoriesModule::FillTree(CP::TEvent& event) {
+bool CP::TG4TrajectoriesModule::FillTree(CP::TEvent& event) {
     if (!event.GetContext().IsMC()) {
         CaptInfo("Event Context reports event is non-MC.");
         return false; // disable module
@@ -105,7 +106,7 @@ bool CP::TTruthTrajectoriesModule::FillTree(CP::TEvent& event) {
     CP::TG4TrajectoryContainer::iterator traj_it = trajectories->begin();
     CP::TG4TrajectoryContainer::iterator traj_end = trajectories->end();
     CP::TG4Trajectory* traj;
-    CP::TTruthTrajectoriesModule::TTruthTrajectory* trajToFill;
+    CP::TG4TrajectoriesModule::TG4Trajectory* trajToFill;
 	
     int filledTraj = 0;
     for (; traj_it != traj_end; ++traj_it) {
@@ -123,48 +124,16 @@ bool CP::TTruthTrajectoriesModule::FillTree(CP::TEvent& event) {
         //
         // Do the saving
 		
-        trajToFill = new(&(fTrajectories[filledTraj])) TTruthTrajectory();
+        trajToFill = new(&(fTrajectories[filledTraj])) TG4Trajectory();
         ++ filledTraj;
 		
         trajToFill->TrajId = traj->GetTrackId();
         trajToFill->ParentId = traj->GetParentId();
         trajToFill->PrimaryId = trajectories->GetPrimaryId(trajToFill->TrajId);
         trajToFill->PDG = traj->GetPDGEncoding();
+        trajToFill->Mass = CP::utils::FindPDGMass(traj->GetPDGEncoding());
+        trajToFill->Charge = CP::utils::FindPDGCharge(traj->GetPDGEncoding());
         FillPoints(traj, trajToFill);
-
-        // CP::G4Trajectory::GetParticle will return NULL if the particle's
-        // PDG number is not found in the PDG database. oaAnalysis defines
-        // its own extended database but should still check in case a
-        // new nucleus is added to the MC, for example.
-        // At the moment this is also triggered by isomers - need to handle this
-        if (traj->GetParticle())  {
-            // In ROOT the TParticlePDG mass is given in GeV/c2, but we
-            // want MeV/c2
-            trajToFill->Mass = traj->GetParticle()->Mass() * unit::GeV;
-            trajToFill->Charge 
-                = static_cast<Int_t>( traj->GetParticle()->Charge() );
-        }
-        else {
-            int pdg = traj->GetPDGEncoding();
-            int i = 0;
-            int a = pdg/10 % 1000;
-            int z = pdg/10000 % 1000;
-            const TGeoElementRN* rn 
-                = TGeoElement::GetElementTable()->GetElementRN(a,z,i);
-            if (rn) {
-                // ROOT TGeoElementRN stores mass in atomic mass units, but we
-                // want MeV/c2
-                trajToFill->Mass = rn->MassNo() * unit::amu_c2;
-                trajToFill->Charge = static_cast<int>( rn->AtomicNo() * 3);
-            }
-            else {
-                CaptError("PDG number " << traj->GetPDGEncoding()
-                          << " does not exist in database."
-                          << " Cannot fill Mass and Charge values.");
-                trajToFill->Mass = a * unit::amu_c2;
-                trajToFill->Charge = z * 3;
-            }
-        }
     }
 		
     // Sort the vector array so trajectories are in order of ascending Id.
@@ -174,7 +143,7 @@ bool CP::TTruthTrajectoriesModule::FillTree(CP::TEvent& event) {
 }
 
 bool 
-CP::TTruthTrajectoriesModule::SaveTraj(const CP::TG4Trajectory& traj) const {
+CP::TG4TrajectoriesModule::SaveTraj(const CP::TG4Trajectory& traj) const {
     // Never save a trajectory with a zero trajectory id.
     if (traj.GetTrackId() == 0) return false;
     
@@ -190,9 +159,9 @@ CP::TTruthTrajectoriesModule::SaveTraj(const CP::TG4Trajectory& traj) const {
     return true;
 }
 
-void CP::TTruthTrajectoriesModule::FillPoints(
+void CP::TG4TrajectoriesModule::FillPoints(
     CP::TG4Trajectory *const traj,
-    CP::TTruthTrajectoriesModule::TTruthTrajectory* trajToFill) {
+    CP::TG4TrajectoriesModule::TG4Trajectory* trajToFill) {
 
     trajToFill->Position.clear();
     trajToFill->Momentum.clear();
@@ -246,10 +215,10 @@ void CP::TTruthTrajectoriesModule::FillPoints(
 }
 
 //
-// Truth Trajectory
+// G4 Trajectory
 // =====================================================================
 //
-CP::TTruthTrajectoriesModule::TTruthTrajectory::TTruthTrajectory()
+CP::TG4TrajectoriesModule::TG4Trajectory::TG4Trajectory()
     : TrajId(-1),
       ParentId(-1),
       PrimaryId(-1),

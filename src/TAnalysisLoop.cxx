@@ -1,6 +1,7 @@
 #include "TAnalysisLoop.hxx"
 #include "TAnalysisModuleBase.hxx"
 #include "TG4TrajectoriesModule.hxx"
+#include "TG4VerticesModule.hxx"
 
 #include <TRootInput.hxx>
 #include <TRootOutput.hxx>
@@ -26,7 +27,7 @@ CP::TAnalysisLoop::TAnalysisLoop()
     // Add the "must have" modules.
     // fAnalysisModules.push_back(new CP::TBasicHeaderModule);
     fAnalysisModules.push_back(new CP::TG4TrajectoriesModule);
-    // fAnalysisModules.push_back(new CP::TG4VerticesModule);
+    fAnalysisModules.push_back(new CP::TG4VerticesModule);
 
     // Save pointer to these modules; this has to be done, because we
     // no longer have access to the input file pointer, except in BeginFile.
@@ -82,7 +83,6 @@ bool CP::TAnalysisLoop::operator () (CP::TEvent& event) {
         rooModIter = modIter;
         CP::TAnalysisModuleBase *mod = *modIter;
         if (mod->IsEnabled()) {
-            CaptLog("Processing with mod" << mod->GetName());
             try {
                 if (fEventCount == 1) {
                     // As a special case, call ProcessFirstEvent() for the

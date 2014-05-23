@@ -1,5 +1,5 @@
-#ifndef TTruthTrajectoriesModule_hxx_seen
-#define TTruthTrajectoriesModule_hxx_seen
+#ifndef TG4TrajectoriesModule_hxx_seen
+#define TG4TrajectoriesModule_hxx_seen
 
 #include <TAnalysisTruthModuleBase.hxx>
 #include <ECaptainSummary.hxx>
@@ -13,8 +13,7 @@
 #include <set>
 
 namespace CP {
-    class TTruthTrajectoriesModule;
-    EXCEPTION(ECaptainSummaryInfiniteLoop, ECaptainSummary);
+    class TG4TrajectoriesModule;
 }
 
 
@@ -23,15 +22,15 @@ namespace CP {
 /// called "G4Trajectories" in the "TruthDir" directory of CaptainSummary
 /// files.  The tree contains a vector with a TTruthTrajectory for every
 /// particle in the event which passes the module's criteria to be saved.
-class CP::TTruthTrajectoriesModule : public TAnalysisTruthModuleBase {
+class CP::TG4TrajectoriesModule : public TAnalysisTruthModuleBase {
 public:
     
-    class TTruthTrajectory;
+    class TG4Trajectory;
     
-    TTruthTrajectoriesModule(const char *name = "G4Trajectories",
+    TG4TrajectoriesModule(const char *name = "G4Trajectories",
                              const char *title = "Summary of G4 trajectories");
     
-    virtual ~TTruthTrajectoriesModule();
+    virtual ~TG4TrajectoriesModule();
     
     /// This method return kTRUE - the module is always enabled by defult.
     virtual Bool_t IsEnabledByDefault() const {return kTRUE;}
@@ -66,12 +65,12 @@ public:
     /// need to do any thing in this method, but it must be defined.
     virtual void InitializeModule();
 
-    /// Creates the necessary tree and branches for saving the Truth
+    /// Creates the necessary tree and branches for saving the G4
     /// Trajectories information
     virtual void InitializeBranches();
 		
     /// Called for each event, this method is the master method for retrieving
-    /// and filling the Truth Trajectories information.
+    /// and filling the G4 Trajectories information.
     virtual bool FillTree(CP::TEvent&);
 		
 private:
@@ -85,7 +84,7 @@ private:
     /// Fills the new vectors of entry/exit positions and momenta of the
     /// trajectory for every subdetector the trajectory traverses.
     void FillPoints(CP::TG4Trajectory *const traj,
-                    CP::TTruthTrajectoriesModule::TTruthTrajectory* trajToFill);
+                    CP::TG4TrajectoriesModule::TG4Trajectory* trajToFill);
 		
     /// Returns true if a trajectory needs to be saved, and false oterwise.
     bool SaveTraj(const CP::TG4Trajectory& traj) const;
@@ -108,22 +107,22 @@ public:
 		
     // Members saved by the module to the output tree
 		
-    /// [branch] std::vector of TTruthTrajectory sorted in ascending TrajId
+    /// [branch] std::vector of TG4Trajectory sorted in ascending TrajId
     /// order.
-    std::vector<CP::TTruthTrajectoriesModule::TTruthTrajectory> fTrajectories;
+    std::vector<CP::TG4TrajectoriesModule::TG4Trajectory> fTrajectories;
 
-    ClassDef(TTruthTrajectoriesModule,1);
+    ClassDef(TG4TrajectoriesModule,1);
 };
 
 
 
 /// Contains the truth information associated with a particle trajectory from
 /// the Monte Carlo simulations.
-class CP::TTruthTrajectoriesModule::TTruthTrajectory : public TObject {
+class CP::TG4TrajectoriesModule::TG4Trajectory : public TObject {
 public:
     
-    TTruthTrajectory();
-    virtual ~TTruthTrajectory() {};
+    TG4Trajectory();
+    virtual ~TG4Trajectory() {};
 		
     /// Trajectory id number.  This uniquely identifies this trajectory within
     /// the event and can be used by other modules to reference trajectories.
@@ -185,7 +184,7 @@ public:
 
 private:
 		
-    ClassDef(TTruthTrajectoriesModule::TTruthTrajectory, 1);
+    ClassDef(TG4TrajectoriesModule::TG4Trajectory, 1);
 };
 
 #endif
