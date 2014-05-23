@@ -1,0 +1,43 @@
+// Mainpage for doxygen
+
+/*! @mainpage captSummary
+  
+@anchor captSummary
+
+@section Description Description
+
+The captSummary tools write out the event information in a summarized
+pure-ROOT format.  The summary is written to a Data Summary Tree file with
+different captSummary modules writing independent (friend) trees that can
+be loaded in analysis code as required.  
+ 
+
+@section Introduction Introduction
+
+The captSummary package sits at the end of the CAPTAIN offline softwar
+change and handles information coming from all the subsystems.  All the
+package upstream packages save their output in the captEvent format, which
+is fully flexible and can contain everything from raw data blocks to
+simulated and reconstructed event information with associated errors
+etc. These files tend to be very large and contain a lot of low-level
+information, making them impractical for use in a final physics analysis.
+The captSummary package reduces size of the information at the cost of
+flexibility, and puts it into pure-ROOT format conducive to physics
+analysis.  The tools to work with the DST format are provided in the
+dstTools package.
+
+The captSummary "modules" represent classes which distil the event
+information into mutually-related chunks.  Each module saves a tree to the
+output analysis file.  These are selected and run from the application
+CAPTAINSUMMARY.exe, using the event loop in the class TAnalysisLoop.
+
+@section writingAnalysisOutputFiles Writing Analysis Output Files
+
+The infrastructure for writing out analysis files is intended to be
+relatively stable, but to evolve as the experiment progresses.  The format
+is structured so that users can easily create "flat" trees which can be
+made friends of the trees in the captSummary DST.  These flat trees then
+become the basis for final physics analysis.
+
+*/
+

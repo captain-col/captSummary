@@ -17,11 +17,12 @@ namespace CP {
 }
 
 
-/// The CaptainSummary module is responsible for saving information about the
-/// particle paths simulated in an event from the MC.  The MC saves a tree
-/// called "G4Trajectories" in the "TruthDir" directory of CaptainSummary
-/// files.  The tree contains a vector with a TTruthTrajectory for every
-/// particle in the event which passes the module's criteria to be saved.
+/// Create the G4Trajectories tree in the TruthDir directory to save
+/// information about the MC particle paths simulated in the event. The MC
+/// information is in a tree called "G4Trajectories" in the "TruthDir"
+/// directory of CaptainSummary files.  The tree contains a vector with a
+/// TG4Trajectory objects for every particle in the event which passes the
+/// module's criteria to be saved.
 class CP::TG4TrajectoriesModule : public TAnalysisTruthModuleBase {
 public:
     
@@ -116,8 +117,10 @@ public:
 
 
 
-/// Contains the truth information associated with a particle trajectory from
-/// the Monte Carlo simulations.
+/// The truth information with an MC particle trajectory in the Trajectory
+/// branch of the G4Trajectories tree.  The Trajectory branch of the
+/// G4Trajectories tree is a std::vector<TG4Trajectory> object with the
+/// trajectories stored in order of increasing TrajId.
 class CP::TG4TrajectoriesModule::TG4Trajectory : public TObject {
 public:
     

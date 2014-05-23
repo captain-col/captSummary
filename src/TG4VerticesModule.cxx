@@ -40,7 +40,7 @@ void CP::TG4VerticesModule::InitializeBranches() {
     GetOutputTree()->Branch(
         "Particle",
         "std::vector<CP::TG4VerticesModule::TG4Particle>", 
-        &fVertices, 
+        &fParticles, 
         GetBufferSize(), GetSplitLevel());
 }
 
