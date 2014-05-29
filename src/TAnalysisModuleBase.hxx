@@ -176,14 +176,6 @@ public:
     /// The output tree
     TTree * const GetOutputTree() const {return fOutputTree;}
 
-    /// Set the location of a directory where the module can look for extra
-    /// files.
-    void SetInputDirectory(const std::string& dir) {fInputDirectory = dir;}
-    
-    /// Get the location of a directory where the module can look for extra
-    /// files.
-    std::string GetInputDirectory() const {return fInputDirectory;}
-
     /// The derived module can override this if it needs access to the file
     /// pointer.  Examples of modules that will need the file pointer are the
     /// primary vertex trees where the vertex needs to be found in the tree.
@@ -209,13 +201,23 @@ private:
 
     ///////////////////////////////////////////////////////////////////
     /// Default Tree Entries
-    int fRunID;
-    int fSubrunID;
-    int fEventID;
-    int fPreselected;
 
-    /// An input directory where analysis modules can search for extra files.
-    std::string fInputDirectory;    
+    /// [TREE MEMBER] The run number for the event context to be used in
+    /// finding events in the chain.
+    int fRunId;
+
+    /// [TREE MEMBER] The subrun number of the event context.  This references
+    /// the file in a run, and the event number sequence doesn't restart at
+    /// the begining of each subrun.
+    int fSubrunId;
+
+    /// [TREE MEMBER] The event number of the event context to be used in
+    /// finding events in a chain.
+    int fEventId;
+
+    /// [TREE MEMBER] A flag set during filling for if this event is
+    /// preselected.
+    int fPreselected;
 
     ClassDef(TAnalysisModuleBase,1);
 

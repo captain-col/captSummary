@@ -54,10 +54,10 @@ public:
 		
 private:
 		
-    /// [branch] std::vector of TG4Vertex for each vertex in the event.
+    /// [TREE MEMBER] std::vector of TG4Vertex for each vertex in the event.
     std::vector<CP::TG4VerticesModule::TG4Vertex> fVertices;
 
-    /// [branch] std::vector of TG4Particle for each particle attached to a
+    /// [TREE MEMBER] std::vector of TG4Particle for each particle attached to a
     /// vertex in the event.
     std::vector<CP::TG4VerticesModule::TG4Particle> fParticles;
 

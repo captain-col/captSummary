@@ -90,8 +90,6 @@ private:
     /// Returns true if a trajectory needs to be saved, and false oterwise.
     bool SaveTraj(const CP::TG4Trajectory& traj) const;
 		
-    // Members
-		
     /// Minimum Length of Trajectories that will be saved in mm.  All primary
     /// particles will be saved regardless of this.
     Double_t fMinLength;
@@ -108,7 +106,7 @@ public:
 		
     // Members saved by the module to the output tree
 		
-    /// [branch] std::vector of TG4Trajectory sorted in ascending TrajId
+    /// [TREE MEMBER] std::vector of TG4Trajectory sorted in ascending TrajId
     /// order.
     std::vector<CP::TG4TrajectoriesModule::TG4Trajectory> fTrajectories;
 

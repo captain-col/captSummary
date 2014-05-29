@@ -5,9 +5,9 @@ ClassImp(CP::TAnalysisModuleBase);
 CP::TAnalysisModuleBase::TAnalysisModuleBase():
     TNamed("Undefined: Problem in derived class!", 
            "Undefined: Problem in derived class!"),
+    fOutputTree(NULL),
     fIsEnabled(kFALSE),
     fIsUsedForPreselection(kFALSE),
-    fOutputTree(NULL),
     fBufferSize(32000),
     fSplitLevel(99) { }
 
@@ -35,19 +35,19 @@ void CP::TAnalysisModuleBase::Initialize(TTree *tree) {
     fOutputTree->SetAutoFlush(3000000);
     
     InitializeModule();
-    fOutputTree->Branch("RunID", &fRunID, "RunID/I", fBufferSize);
-    fOutputTree->Branch("EventID", &fEventID, "EventID/I", fBufferSize);
+    fOutputTree->Branch("RunId", &fRunId, "RunId/I", fBufferSize);
+    fOutputTree->Branch("EventId", &fEventId, "EventId/I", fBufferSize);
     fOutputTree->Branch("Preselected", &fPreselected, "Preselected/B", 
                         fBufferSize);
-    fOutputTree->Branch("SubrunID", &fSubrunID, "SubrunID/I", fBufferSize);
+    fOutputTree->Branch("SubrunId", &fSubrunId, "SubrunId/I", fBufferSize);
     InitializeBranches();
 }
 
 
 bool CP::TAnalysisModuleBase::Process(CP::TEvent& event) {
-    fRunID = event.GetRunId();
-    fEventID = event.GetEventId();
-    fSubrunID = event.GetContext().GetSubRun();
+    fRunId = event.GetRunId();
+    fEventId = event.GetEventId();
+    fSubrunId = event.GetContext().GetSubRun();
     if (!FillTree(event)) {
         throw EAnalysisFailure();
     }
