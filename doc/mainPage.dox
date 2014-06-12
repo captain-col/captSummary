@@ -14,8 +14,8 @@ be loaded in analysis code as required.
 
 @section Introduction Introduction
 
-The captSummary package sits at the end of the CAPTAIN offline softwar
-change and handles information coming from all the subsystems.  All the
+The captSummary package sits at the end of the CAPTAIN offline software
+chain and handles information coming from all the subsystems.  All the
 package upstream packages save their output in the captEvent format, which
 is fully flexible and can contain everything from raw data blocks to
 simulated and reconstructed event information with associated errors

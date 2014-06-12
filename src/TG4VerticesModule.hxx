@@ -22,7 +22,16 @@ namespace CP {
 /// tree called "G4Vertices" in the "TruthDir" directory of the DST file. The
 /// tree contains the Vertex vector with a TG4Vertex object for every vertex,
 /// and the Particle vector of TG4Particle for every particle attached to a
-/// vertex.
+/// vertex.  The tree is defined as:
+///
+/// * TruthDir/G4Vertices -- A tree for the primary particles started in G4.
+///
+///   * Vertex (std::vector<TG4Vertex>) A branch of TG4Vertex objects sorted
+///         by the vertex number.
+///
+///   * Particle (std::vector<TG4Particle>) A branch of TG4Particle objects
+///         sorted by primary particle id.
+///                 
 class CP::TG4VerticesModule : public TAnalysisTruthModuleBase {
 public:
     
@@ -89,7 +98,7 @@ private:
 };
 
 /// The Particle branch of the G4Vertices tree contains the truth information
-/// associated with a particle from the Monte Carlo simulations.
+/// associated with a particle from the Monte Carlo simulations.  
 class CP::TG4VerticesModule::TG4Particle : public TObject {
 public:
     

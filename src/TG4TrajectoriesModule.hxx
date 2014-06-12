@@ -22,7 +22,13 @@ namespace CP {
 /// information is in a tree called "G4Trajectories" in the "TruthDir"
 /// directory of CaptainSummary files.  The tree contains a vector with a
 /// TG4Trajectory objects for every particle in the event which passes the
-/// module's criteria to be saved.
+/// module's criteria to be saved.  The tree is defined as:
+///
+/// * TruthDir/G4Trajectories -- A tree for the true particle trajectories.
+///
+///   * Trajectory (std::vector<TG4Trajectory>) A branch of TG4Trajectory
+///         objects sorted by the trajectory number.
+///                 
 class CP::TG4TrajectoriesModule : public TAnalysisTruthModuleBase {
 public:
     
