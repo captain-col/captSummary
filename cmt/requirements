@@ -44,3 +44,11 @@ macro_append captSummary_dependencies " linkdef "
 # Build the application for this package.
 application CAPTAINSUMMARY ../app/captainSummary.cxx
 macro_append CAPTAINSUMMARY_dependencies " captSummary " 
+
+# Build the library for the tree package.
+library treeMaker *.cxx *.hxx $(bin)dict/*.cxx
+macro_append treeMaker_dependencies " linkdef "
+
+# Build the tree application for this package.
+application TREEMAKER ../app/treeMaker.cxx
+macro_append TREEMAKER_dependencies " treeMaker " 
