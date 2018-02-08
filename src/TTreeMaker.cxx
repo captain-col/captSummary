@@ -28,6 +28,9 @@
 
 CP::TTreeMakerLoop::TTreeMakerLoop() {
 
+    run = 0;
+    evt = 0;
+
     first_hit_X.clear();
     last_hit_X.clear();
 
@@ -42,9 +45,13 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
     PDS_delta_time.clear();
     PDS_trigger_type.clear();
     PDS_energy.clear();
+    PDS_beam_trigger.clear();
 
     hfile= new TFile("tracks.root","RECREATE");
     tree = new TTree("tracks","");
+    tree->Branch("run",&run,"run/I");
+    tree->Branch("event",&evt,"event/I");
+
     tree->Branch("first_hit_X",&first_hit_X);
     tree->Branch("last_hit_X",&last_hit_X);
     tree->Branch("first_hit_Y",&first_hit_Y);
@@ -57,6 +64,7 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
     tree->Branch("PDS_delta_time","std::vector<Long64_t>",&PDS_delta_time);
     tree->Branch("PDS_trigger_type",&PDS_trigger_type);
     tree->Branch("PDS_energy",&PDS_energy);
+    tree->Branch("PDS_beam_trigger",&PDS_beam_trigger);
 	
 }
 
@@ -68,6 +76,9 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		
     CP::THandle<CP::TReconObjectContainer> tracks = event.Get<CP::TReconObjectContainer>("~/fits/TCaptainRecon/final");
     CP::THandle<CP::TDataVector> dataPMT = event.Get<CP::TDataVector>("~/pmtData");
+
+    run = event.GetContext().GetRun();
+    evt = event.GetContext().GetEvent();
 
     TPC_time = event.GetTimeStamp();
 
@@ -84,6 +95,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 	    PDS_delta_time.push_back((eventPMT->Get<CP::TRealDatum>("DeltaT_ns"))->GetValue());
 	    PDS_trigger_type.push_back((eventPMT->Get<CP::TRealDatum>("TriggerType"))->GetValue());
 	    PDS_energy.push_back((eventPMT->Get<CP::TRealDatum>("Energy_MeV"))->GetValue());
+	    PDS_beam_trigger.push_back((eventPMT->Get<CP::TRealDatum>("BeamTrig"))->GetValue());
 	}
     }
 	
@@ -119,7 +131,9 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 	std::cout<<"NO TRACKS"<<std::endl;
     }
     
-    tree->Fill();		
+    tree->Fill();
+    run = 0;
+    evt = 0;
     first_hit_X.clear();
     last_hit_X.clear();
     first_hit_Y.clear();
@@ -131,6 +145,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     PDS_delta_time.clear();
     PDS_trigger_type.clear();
     PDS_energy.clear();
+    PDS_beam_trigger.clear();
 
     return true;
 }

@@ -40,6 +40,9 @@ private:
   
     TFile* hfile;
     TTree* tree;
+
+    Int_t run;
+    Int_t evt;
   
     std::vector<double> first_hit_X;
     std::vector<double> last_hit_X;
@@ -55,6 +58,7 @@ private:
     std::vector<Long64_t> PDS_delta_time;
     std::vector<int> PDS_trigger_type;
     std::vector<double> PDS_energy;
+    std::vector<int> PDS_beam_trigger;
     
     
 };
