@@ -101,23 +101,19 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 	
     if (tracks) {
 	for (CP::TReconObjectContainer::const_iterator t = tracks->begin(); t != tracks->end(); ++t) {
-	    CP::THandle<CP::THitSelection> hits = (*t)->GetHits();
-	    double min_z = 9999;
-	    double max_z = -9999;
-	    TVector3 min_hit;
-	    TVector3 max_hit;
-		
-	    for (CP::THitSelection::const_iterator h = hits->begin(); h != hits->end(); ++h) {
-		TVector3 v = (*h)->GetPosition();
-		if (v.Z() > max_z) {
-		    max_z = v.Z();
-		    max_hit = v;
-		}		    
-		if (v.Z() < min_z) {
-		    min_z = v.Z();
-		    min_hit = v;
-		}
+	    TLorentzVector min_hit;
+	    TLorentzVector max_hit;
+		       CP::THandle<CP::TReconTrack> track = *t;
+	    if(track){
+	    	
+	    if(track->GetFront()->GetPosition().X()>track->GetBack()->GetPosition().X()){
+	      min_hit=track->GetFront()->GetPosition();
+	      max_hit=track->GetBack()->GetPosition();
+	    }else{
+	      min_hit=track->GetBack()->GetPosition();
+	      max_hit=track->GetFront()->GetPosition();	      
 	    }
+	     
 
 	    first_hit_X.push_back(min_hit.X());
 	    last_hit_X.push_back(max_hit.X());
@@ -125,6 +121,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 	    last_hit_Y.push_back(max_hit.Y());
 	    first_hit_Z.push_back(min_hit.Z());
 	    last_hit_Z.push_back(max_hit.Z());
+	}
 	}
     }
     else {
