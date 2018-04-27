@@ -83,7 +83,8 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     TPC_time = event.GetTimeStamp();
 
     TString pdsEvent = "";
-    for (int i=0; i<dataPMT->size(); i++) {
+	if(dataPMT){ 
+   for (int i=0; i<dataPMT->size(); i++) {
 	pdsEvent.Form("~/pmtData/PDSEvent_%d",i);
 	CP::THandle<CP::TEvent> eventPMT = event.Get<CP::TEvent>(pdsEvent);
 	if (!eventPMT) {
@@ -98,7 +99,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 	    PDS_beam_trigger.push_back((eventPMT->Get<CP::TRealDatum>("BeamTrig"))->GetValue());
 	}
     }
-	
+}	
     if (tracks) {
 	for (CP::TReconObjectContainer::const_iterator t = tracks->begin(); t != tracks->end(); ++t) {
 	    TLorentzVector min_hit;
