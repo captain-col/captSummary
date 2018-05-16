@@ -53,6 +53,8 @@ private:
     std::vector<double> first_hit_Z;
     std::vector<double> last_hit_Z;
 
+    std::vector<double> track_length;
+    
     Long64_t TPC_time;
     std::vector<Long64_t> PDS_RF_time;
     std::vector<Long64_t> PDS_delta_time;

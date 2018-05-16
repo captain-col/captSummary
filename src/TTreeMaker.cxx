@@ -40,6 +40,8 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
     first_hit_Z.clear();
     last_hit_Z.clear();
 
+    track_length.clear();
+
     TPC_time = 0;
     PDS_RF_time.clear();
     PDS_delta_time.clear();
@@ -58,6 +60,8 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
     tree->Branch("last_hit_Y",&last_hit_Y);
     tree->Branch("first_hit_Z",&first_hit_Z);
     tree->Branch("last_hit_Z",&last_hit_Z);
+
+    tree->Branch("track_length",&track_length);
 
     tree->Branch("TPC_time",&TPC_time,"TPC_time/L");
     tree->Branch("PDS_RF_time","std::vector<Long64_t>",&PDS_RF_time);
@@ -83,46 +87,51 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     TPC_time = event.GetTimeStamp();
 
     TString pdsEvent = "";
-	if(dataPMT){ 
-   for (int i=0; i<dataPMT->size(); i++) {
-	pdsEvent.Form("~/pmtData/PDSEvent_%d",i);
-	CP::THandle<CP::TEvent> eventPMT = event.Get<CP::TEvent>(pdsEvent);
-	if (!eventPMT) {
-	    std::cout<<"NO PMT EVENT"<<std::endl;
+    if(dataPMT){ 
+	for (u_int i=0; i<dataPMT->size(); i++) {
+	    pdsEvent.Form("~/pmtData/PDSEvent_%d",i);
+	    CP::THandle<CP::TEvent> eventPMT = event.Get<CP::TEvent>(pdsEvent);
+	    if (!eventPMT) {
+		std::cout<<"NO PMT EVENT"<<std::endl;
+	    }
+	    else {
+		//double TOF = (eventPMT->Get<CP::TRealDatum>("TOF_ns"))->GetValue();
+		PDS_RF_time.push_back((eventPMT->Get<CP::TRealDatum>("TimeFromFirstRF_ns"))->GetValue());
+		PDS_delta_time.push_back((eventPMT->Get<CP::TRealDatum>("DeltaT_ns"))->GetValue());
+		PDS_trigger_type.push_back((eventPMT->Get<CP::TRealDatum>("TriggerType"))->GetValue());
+		PDS_energy.push_back((eventPMT->Get<CP::TRealDatum>("Energy_MeV"))->GetValue());
+		PDS_beam_trigger.push_back((eventPMT->Get<CP::TRealDatum>("BeamTrig"))->GetValue());
+	    }
 	}
-	else {
-	    //double TOF = (eventPMT->Get<CP::TRealDatum>("TOF_ns"))->GetValue();
-	    PDS_RF_time.push_back((eventPMT->Get<CP::TRealDatum>("TimeFromFirstRF_ns"))->GetValue());
-	    PDS_delta_time.push_back((eventPMT->Get<CP::TRealDatum>("DeltaT_ns"))->GetValue());
-	    PDS_trigger_type.push_back((eventPMT->Get<CP::TRealDatum>("TriggerType"))->GetValue());
-	    PDS_energy.push_back((eventPMT->Get<CP::TRealDatum>("Energy_MeV"))->GetValue());
-	    PDS_beam_trigger.push_back((eventPMT->Get<CP::TRealDatum>("BeamTrig"))->GetValue());
-	}
-    }
-}	
+    }	
     if (tracks) {
 	for (CP::TReconObjectContainer::const_iterator t = tracks->begin(); t != tracks->end(); ++t) {
 	    TLorentzVector min_hit;
 	    TLorentzVector max_hit;
-		       CP::THandle<CP::TReconTrack> track = *t;
+	    CP::THandle<CP::TReconTrack> track = *t;
 	    if(track){
 	    	
-	    if(track->GetFront()->GetPosition().X()>track->GetBack()->GetPosition().X()){
-	      min_hit=track->GetFront()->GetPosition();
-	      max_hit=track->GetBack()->GetPosition();
-	    }else{
-	      min_hit=track->GetBack()->GetPosition();
-	      max_hit=track->GetFront()->GetPosition();	      
-	    }
+		if(track->GetFront()->GetPosition().X()>track->GetBack()->GetPosition().X()){
+		    min_hit=track->GetFront()->GetPosition();
+		    max_hit=track->GetBack()->GetPosition();
+		}else{
+		    min_hit=track->GetBack()->GetPosition();
+		    max_hit=track->GetFront()->GetPosition();	      
+		}
 	     
 
-	    first_hit_X.push_back(min_hit.X());
-	    last_hit_X.push_back(max_hit.X());
-	    first_hit_Y.push_back(min_hit.Y());
-	    last_hit_Y.push_back(max_hit.Y());
-	    first_hit_Z.push_back(min_hit.Z());
-	    last_hit_Z.push_back(max_hit.Z());
-	}
+		first_hit_X.push_back(min_hit.X());
+		last_hit_X.push_back(max_hit.X());
+		first_hit_Y.push_back(min_hit.Y());
+		last_hit_Y.push_back(max_hit.Y());
+		first_hit_Z.push_back(min_hit.Z());
+		last_hit_Z.push_back(max_hit.Z());
+
+		float length = sqrt( (min_hit.X()-max_hit.X())*(min_hit.X()-max_hit.X()) + (min_hit.Y()-max_hit.Y())*(min_hit.Y()-max_hit.Y()) + (min_hit.Z()-max_hit.Z())*(min_hit.Z()-max_hit.Z()) );
+		
+		track_length.push_back(length);
+		
+	    }
 	}
     }
     else {
@@ -138,6 +147,9 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     last_hit_Y.clear();
     first_hit_Z.clear();
     last_hit_Z.clear();
+
+    track_length.clear();
+
     TPC_time = 0;
     PDS_RF_time.clear();
     PDS_delta_time.clear();
