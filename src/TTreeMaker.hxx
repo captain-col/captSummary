@@ -53,14 +53,40 @@ private:
     std::vector<double> first_hit_Z;
     std::vector<double> last_hit_Z;
 
+    std::vector<double> corrected_first_hit_Z;
+    std::vector<double> corrected_last_hit_Z;
+
+    std::vector<int> first_wire_X;
+    std::vector<int> first_wire_U;
+    std::vector<int> first_wire_V;
+
+    std::vector<double> first_hit_charge_X;
+    std::vector<double> first_hit_charge_U;
+    std::vector<double> first_hit_charge_V;
+
     std::vector<double> track_length;
-    
+    std::vector<double> track_energy;
+
+    std::vector<double> dQdx;
+    std::vector<double> dEdx;
+
     Long64_t TPC_time;
     std::vector<Long64_t> PDS_RF_time;
-    std::vector<Long64_t> PDS_delta_time;
+    std::vector<double> PDS_delta_time;
     std::vector<int> PDS_trigger_type;
     std::vector<double> PDS_energy;
     std::vector<int> PDS_beam_trigger;
+
+    std::vector<double> truth_vertex_X;
+    std::vector<double> truth_vertex_Y;
+    std::vector<double> truth_vertex_Z;
+
+    std::vector<int> truth_particle_PDG;
+    std::vector<double> truth_particle_E;
+    std::vector<double> truth_particle_px;
+    std::vector<double> truth_particle_py;
+    std::vector<double> truth_particle_pz;
     
+    std::vector<double> truth_trajectory_length;
     
 };

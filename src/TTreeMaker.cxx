@@ -5,7 +5,12 @@
 #include <TReconTrack.hxx>
 #include <TReconHit.hxx>
 #include <TRealDatum.hxx>
+#include <CaptGeomId.hxx>
+#include <TChannelInfo.hxx>
 #include "TTreeMaker.hxx"
+#include "TGeometryInfo.hxx"
+#include <TG4PrimaryVertex.hxx>
+#include <TG4Trajectory.hxx>
 
 #include <TEvent.hxx>
 
@@ -39,9 +44,23 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
 	
     first_hit_Z.clear();
     last_hit_Z.clear();
+    corrected_first_hit_Z.clear();
+    corrected_last_hit_Z.clear();
+
+    first_wire_X.clear();
+    first_wire_U.clear();
+    first_wire_V.clear();
+    
+    first_hit_charge_X.clear();
+    first_hit_charge_U.clear();
+    first_hit_charge_V.clear();
 
     track_length.clear();
+    track_energy.clear();
 
+    dQdx.clear();
+    dEdx.clear();
+    
     TPC_time = 0;
     PDS_RF_time.clear();
     PDS_delta_time.clear();
@@ -49,6 +68,19 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
     PDS_energy.clear();
     PDS_beam_trigger.clear();
 
+    truth_vertex_X.clear();
+    truth_vertex_Y.clear();
+    truth_vertex_Z.clear();
+
+    truth_particle_PDG.clear();
+    truth_particle_E.clear();
+    truth_particle_px.clear();
+    truth_particle_py.clear();
+    truth_particle_pz.clear();
+
+    truth_trajectory_length.clear();
+
+    
     hfile= new TFile("tracks.root","RECREATE");
     tree = new TTree("tracks","");
     tree->Branch("run",&run,"run/I");
@@ -60,16 +92,43 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
     tree->Branch("last_hit_Y",&last_hit_Y);
     tree->Branch("first_hit_Z",&first_hit_Z);
     tree->Branch("last_hit_Z",&last_hit_Z);
+    tree->Branch("corrected_first_hit_Z",&corrected_first_hit_Z);
+    tree->Branch("corrected_last_hit_Z",&corrected_last_hit_Z);
 
+    tree->Branch("first_wire_X",&first_wire_X);
+    tree->Branch("first_wire_U",&first_wire_U);
+    tree->Branch("first_wire_V",&first_wire_V);
+    
+    tree->Branch("first_hit_charge_X",&first_hit_charge_X);
+    tree->Branch("first_hit_charge_U",&first_hit_charge_U);
+    tree->Branch("first_hit_charge_V",&first_hit_charge_V);
+    
     tree->Branch("track_length",&track_length);
+    tree->Branch("track_energy",&track_energy);
 
+    tree->Branch("dQdx",&dQdx);
+    tree->Branch("dEdx",&dEdx);
+    
     tree->Branch("TPC_time",&TPC_time,"TPC_time/L");
     tree->Branch("PDS_RF_time","std::vector<Long64_t>",&PDS_RF_time);
-    tree->Branch("PDS_delta_time","std::vector<Long64_t>",&PDS_delta_time);
+    tree->Branch("PDS_delta_time","std::vector<double>",&PDS_delta_time);
     tree->Branch("PDS_trigger_type",&PDS_trigger_type);
     tree->Branch("PDS_energy",&PDS_energy);
     tree->Branch("PDS_beam_trigger",&PDS_beam_trigger);
-	
+
+    tree->Branch("truth_vertex_X",&truth_vertex_X);
+    tree->Branch("truth_vertex_Y",&truth_vertex_Y);
+    tree->Branch("truth_vertex_Z",&truth_vertex_Z);
+
+    tree->Branch("truth_particle_PDG",&truth_particle_PDG);
+    tree->Branch("truth_particle_E",&truth_particle_E);
+    tree->Branch("truth_particle_px",&truth_particle_px);
+    tree->Branch("truth_particle_py",&truth_particle_py);
+    tree->Branch("truth_particle_pz",&truth_particle_pz);
+
+    tree->Branch("truth_trajectory_length",&truth_trajectory_length);
+
+    
 }
 
 CP::TTreeMakerLoop::~TTreeMakerLoop() {}
@@ -77,15 +136,29 @@ CP::TTreeMakerLoop::~TTreeMakerLoop() {}
 void CP::TTreeMakerLoop::Initialize(void) {}
 
 bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
-		
-    CP::THandle<CP::TReconObjectContainer> tracks = event.Get<CP::TReconObjectContainer>("~/fits/TCaptainRecon/final");
-    CP::THandle<CP::TDataVector> dataPMT = event.Get<CP::TDataVector>("~/pmtData");
+
+    CP::THandle<CP::TDataVector> dataPMT =
+	event.Get<CP::TDataVector>("~/pmtData");
+    CP::THandle<CP::TReconObjectContainer> tracks =
+	event.Get<CP::TReconObjectContainer>("~/fits/TCaptainRecon/final");
+    CP::THandle<CP::TG4PrimaryVertexContainer> vertex =
+	event.Get<CP::TG4PrimaryVertexContainer>("~/truth/G4PrimVertex00");
+    CP::THandle<CP::TG4TrajectoryContainer> trajs =
+	event.Get<CP::TG4TrajectoryContainer>("~/truth/G4Trajectories");
 
     run = event.GetContext().GetRun();
     evt = event.GetContext().GetEvent();
 
     TPC_time = event.GetTimeStamp();
 
+    std::vector<double> PDS_deltaTs;
+
+    CP::TChannelInfo& chanInfo = CP::TChannelInfo::Get();
+    chanInfo.SetContext(event.GetContext());
+
+    //CP::TGeometryInfo& geomInfo = CP::TGeometryInfo::Get();
+
+    
     TString pdsEvent = "";
     if(dataPMT){ 
 	for (u_int i=0; i<dataPMT->size(); i++) {
@@ -98,6 +171,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		//double TOF = (eventPMT->Get<CP::TRealDatum>("TOF_ns"))->GetValue();
 		PDS_RF_time.push_back((eventPMT->Get<CP::TRealDatum>("TimeFromFirstRF_ns"))->GetValue());
 		PDS_delta_time.push_back((eventPMT->Get<CP::TRealDatum>("DeltaT_ns"))->GetValue());
+		PDS_deltaTs.push_back((eventPMT->Get<CP::TRealDatum>("DeltaT_ns"))->GetValue());
 		PDS_trigger_type.push_back((eventPMT->Get<CP::TRealDatum>("TriggerType"))->GetValue());
 		PDS_energy.push_back((eventPMT->Get<CP::TRealDatum>("Energy_MeV"))->GetValue());
 		PDS_beam_trigger.push_back((eventPMT->Get<CP::TRealDatum>("BeamTrig"))->GetValue());
@@ -109,17 +183,15 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 	    TLorentzVector min_hit;
 	    TLorentzVector max_hit;
 	    CP::THandle<CP::TReconTrack> track = *t;
-	    if(track){
-	    	
+	    if(track){	    	
 		if(track->GetFront()->GetPosition().X()>track->GetBack()->GetPosition().X()){
 		    min_hit=track->GetFront()->GetPosition();
-		    max_hit=track->GetBack()->GetPosition();
+		    max_hit=track->GetBack()->GetPosition();		    
 		}else{
 		    min_hit=track->GetBack()->GetPosition();
 		    max_hit=track->GetFront()->GetPosition();	      
 		}
 	     
-
 		first_hit_X.push_back(min_hit.X());
 		last_hit_X.push_back(max_hit.X());
 		first_hit_Y.push_back(min_hit.Y());
@@ -127,15 +199,118 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		first_hit_Z.push_back(min_hit.Z());
 		last_hit_Z.push_back(max_hit.Z());
 
+		double corrected_Zposf = -999.;
+		double corrected_Zposl = -999.;
+		double Zposf;
+		double Zposl;
+		
+		if (min_hit.Z() < -300 && min_hit.Z() > -1000) {
+		    Zposf = min_hit.Z();
+		    corrected_Zposf = min_hit.Z();
+		    Zposl = max_hit.Z();
+		    corrected_Zposl = max_hit.Z();
+		
+		    for (size_t k = 0; k<PDS_deltaTs.size(); k++) {
+			if (Zposf + PDS_deltaTs[k]*1.6*1000000 < 10 && Zposf + PDS_deltaTs[k]*1.6*1000000 > -320) {
+			    corrected_Zposf = Zposf + PDS_deltaTs[k]*1.6*1000000;
+			    corrected_Zposl = Zposl + PDS_deltaTs[k]*1.6*1000000;
+			    break;
+			}		    
+		    }	       		
+		}
+
+		corrected_first_hit_Z.push_back(corrected_Zposf);
+		corrected_last_hit_Z.push_back(corrected_Zposl);
+
 		float length = sqrt( (min_hit.X()-max_hit.X())*(min_hit.X()-max_hit.X()) + (min_hit.Y()-max_hit.Y())*(min_hit.Y()-max_hit.Y()) + (min_hit.Z()-max_hit.Z())*(min_hit.Z()-max_hit.Z()) );
+
+		float energy = length*1.0;
 		
 		track_length.push_back(length);
+		track_energy.push_back(energy);
+
+		float sumCH = 0.0;
+		float sumCorrCH = 0.0;
+	
+		int firstWireX = -999;
+		int firstWireU = -999;
+		int firstWireV = -999;
+
+		double firstChargeX = 0.0;
+
+		CP::THandle<CP::THitSelection> hitsCluster = track->GetHits();
+		for (auto h: *hitsCluster) {
+		    for (int ic = 0; ic < h->GetConstituentCount(); ic++) {			
+		    	CP::TGeometryId geomId = h->GetConstituent(ic)->GetGeomId();
+			if (CP::GeomId::Captain::IsXWire(geomId)) {
+
+			    Int_t wireN = CP::GeomId::Captain::GetWireNumber(geomId);
+			
+			    if ( wireN > firstWireX) {
+				firstWireX = wireN;
+				firstChargeX = h->GetConstituent(ic)->GetCharge();
+			    }
+			    
+			    float corrCH = h->GetCharge()*exp(( abs(h->GetPosition().Z()) )/(1.6*80));
+			    sumCorrCH += corrCH;
+			    sumCH += h->GetConstituent(ic)->GetCharge();
+			}
+		    }
+		}
+
+		first_wire_X.push_back(firstWireX);
+		first_hit_charge_X.push_back(firstChargeX);
+		
+		float tdQdx = -1.0;
+		float tdEdx = -1.0;
+		float tdEdxBox = -1.0;
+
+		if (length > 10) {
+		    tdQdx = (sumCorrCH)/(length);
+		    float A_B = 0.8;
+		    float W_ion = 23.6e-6;// * unit::MeV;
+		    float k_B = 0.0486;// * (unit::g/unit::cm)/(unit::MeV/unit::cm);
+		    float epsilon = 0.5;
+
+		    float alpha = 0.93;
+		    float beta = 0.3; // *unit::cm/unit::MeV;
+		    
+		    tdEdx = tdQdx/(A_B/W_ion - k_B*tdQdx/epsilon);
+		    tdEdxBox = (exp(beta*W_ion*(tdQdx)) - alpha)/beta;
+		    
+		    dQdx.push_back(tdQdx);
+		    dEdx.push_back(tdEdx);		
+		    
+		 }
 		
 	    }
 	}
     }
     else {
 	std::cout<<"NO TRACKS"<<std::endl;
+    }
+
+    if (vertex) {
+	for (CP::TG4PrimaryVertexContainer::const_iterator v = vertex->begin(); v != vertex->end(); ++v) {
+	    truth_vertex_X.push_back(v->GetPosition().X());
+	    truth_vertex_Y.push_back(v->GetPosition().Y());
+	    truth_vertex_Z.push_back(v->GetPosition().Z());
+
+	    for (CP::TG4PrimaryParticleContainer::const_iterator p = (v->GetPrimaryParticles()).begin(); p != (v->GetPrimaryParticles()).end(); ++p) {
+		truth_particle_PDG.push_back(p->GetPDGCode());
+		truth_particle_E.push_back(p->GetMomentum().E() - p->GetMomentum().M());
+		truth_particle_px.push_back(p->GetMomentum().Px());
+		truth_particle_py.push_back(p->GetMomentum().Py());
+		truth_particle_pz.push_back(p->GetMomentum().Pz());
+		if (trajs) {
+		    CP::THandle<CP::TG4Trajectory> t = trajs->GetTrajectory(p->GetTrackId());
+		    TLorentzVector t1 = t->GetInitialPosition();
+		    TLorentzVector t2 = t->GetFinalPosition();
+		    float truth_length = sqrt( (t1.X()-t2.X())*(t1.X()-t2.X()) + (t1.Y()-t2.Y())*(t1.Y()-t2.Y()) + (t1.Z()-t2.Z())*(t1.Z()-t2.Z()) );
+		    truth_trajectory_length.push_back(truth_length);
+		}
+	    }	
+	}
     }
     
     tree->Fill();
@@ -147,8 +322,22 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     last_hit_Y.clear();
     first_hit_Z.clear();
     last_hit_Z.clear();
+    corrected_first_hit_Z.clear();
+    corrected_last_hit_Z.clear();
+
+    first_wire_X.clear();
+    first_wire_U.clear();
+    first_wire_V.clear();
+    
+    first_hit_charge_X.clear();
+    first_hit_charge_U.clear();
+    first_hit_charge_V.clear();
 
     track_length.clear();
+    track_energy.clear();
+
+    dQdx.clear();
+    dEdx.clear();
 
     TPC_time = 0;
     PDS_RF_time.clear();
@@ -157,6 +346,19 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     PDS_energy.clear();
     PDS_beam_trigger.clear();
 
+    truth_vertex_X.clear();
+    truth_vertex_Y.clear();
+    truth_vertex_Z.clear();
+
+    truth_particle_PDG.clear();
+    truth_particle_E.clear();
+    truth_particle_px.clear();
+    truth_particle_py.clear();
+    truth_particle_pz.clear();
+
+    truth_trajectory_length.clear();
+
+    
     return true;
 }
 // Called at least once.  If multiple file are open, it will be called
