@@ -37,7 +37,6 @@ public:
     virtual void Initialize(void);
     void Finalize(CP::TRootOutput * const output);
 private:
-    TFile* hfile;
     TTree* tree;
 
     Int_t run;

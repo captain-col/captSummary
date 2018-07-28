@@ -29,8 +29,6 @@
 #include <TTree.h>
 #include <TSystem.h>
 
-
-
 CP::TTreeMakerLoop::TTreeMakerLoop() {
 
     run = 0;
@@ -87,8 +85,13 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
     truth_trajectory_last_X.clear();
     truth_trajectory_last_Y.clear();
     truth_trajectory_last_Z.clear();
-    
-    hfile= new TFile("tracks.root","RECREATE");
+
+    tree = NULL;
+}
+
+CP::TTreeMakerLoop::~TTreeMakerLoop() {}
+
+void CP::TTreeMakerLoop::Initialize(void) {
     tree = new TTree("tracks","");
     tree->Branch("run",&run,"run/I");
     tree->Branch("event",&evt,"event/I");
@@ -142,13 +145,7 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
     tree->Branch("truth_trajectory_last_X",&truth_trajectory_last_X);
     tree->Branch("truth_trajectory_last_Y",&truth_trajectory_last_Y);
     tree->Branch("truth_trajectory_last_Z",&truth_trajectory_last_Z);
-
-    
 }
-
-CP::TTreeMakerLoop::~TTreeMakerLoop() {}
-
-void CP::TTreeMakerLoop::Initialize(void) {}
 
 bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 
@@ -422,16 +419,11 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     truth_trajectory_last_Y.clear();
     truth_trajectory_last_Z.clear();
 
-
-    
-    return true;
+    return false;
 }
 // Called at least once.  If multiple file are open, it will be called
 // for each one.   Notice there are two forms...
 void CP::TTreeMakerLoop::Finalize(CP::TRootOutput * const output) {
     
-    hfile->Write();
-    //gSystem->Exec("mv tracks.root "+fName);
-
 }
 
