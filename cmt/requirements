@@ -31,24 +31,12 @@ macro captSummary_linkopts " -L$(CAPTSUMMARYROOT)/$(captSummary_tag) "
 macro_append captSummary_linkopts " -lcaptSummary "
 macro captSummary_stamps " $(captSummarystamp) $(linkdefstamp) "
 
-macro treeMaker_cppflags " -DTREEMAKER_USED "
-macro treeMaker_linkopts " -L$(TREEMAKERROOT)/$(treeMaker_tag) "
-macro_append treeMaker_linkopts " -ltreeMaker "
-macro treeMaker_stamps " $(treeMakerstamp) $(linkdefstamp) "
-
 # The paths to find this library and it's executables
 path_remove LD_LIBRARY_PATH "$(CAPTSUMMARYROOT)" 
 path_prepend LD_LIBRARY_PATH "$(CAPTSUMMARYROOT)/$(captSummary_tag)"
 
 path_remove PATH "$(CAPTSUMMARYROOT)"
 path_prepend PATH "$(CAPTSUMMARYROOT)/$(captSummary_tag)"
-
-path_remove LD_LIBRARY_PATH "$(TREEMAKERROOT)"
-path_prepend LD_LIBRARY_PATH "$(TREEMAKERROOT)/$(treeMaker_tag)"
-
-path_remove PATH "$(TREEMAKERROOT)"
-path_prepend PATH "$(TREEMAKERROOT)/$(treeMaker_tag)"
-
 
 # Build the library for this package.
 library captSummary *.cxx *.hxx $(bin)dict/*.cxx
@@ -58,10 +46,6 @@ macro_append captSummary_dependencies " linkdef "
 application CAPTAINSUMMARY ../app/captainSummary.cxx
 macro_append CAPTAINSUMMARY_dependencies " captSummary " 
 
-# Build the library for the tree package.
-library treeMaker *.cxx *.hxx $(bin)dict/*.cxx
-macro_append treeMaker_dependencies " linkdef "
-
 # Build the tree application for this package.
 application TREEMAKER ../app/treeMaker.cxx
-macro_append TREEMAKER_dependencies " treeMaker " 
+macro_append TREEMAKER_dependencies " captSummary " 
