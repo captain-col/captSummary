@@ -80,6 +80,13 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
 
     truth_trajectory_length.clear();
 
+    truth_trajectory_first_X.clear();
+    truth_trajectory_first_Y.clear();
+    truth_trajectory_first_Z.clear();
+
+    truth_trajectory_last_X.clear();
+    truth_trajectory_last_Y.clear();
+    truth_trajectory_last_Z.clear();
     
     hfile= new TFile("tracks.root","RECREATE");
     tree = new TTree("tracks","");
@@ -127,6 +134,14 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
     tree->Branch("truth_particle_pz",&truth_particle_pz);
 
     tree->Branch("truth_trajectory_length",&truth_trajectory_length);
+
+    tree->Branch("truth_trajectory_first_X",&truth_trajectory_first_X);
+    tree->Branch("truth_trajectory_first_Y",&truth_trajectory_first_Y);
+    tree->Branch("truth_trajectory_first_Z",&truth_trajectory_first_Z);
+
+    tree->Branch("truth_trajectory_last_X",&truth_trajectory_last_X);
+    tree->Branch("truth_trajectory_last_Y",&truth_trajectory_last_Y);
+    tree->Branch("truth_trajectory_last_Z",&truth_trajectory_last_Z);
 
     
 }
@@ -239,7 +254,8 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		double firstChargeX = 0.0;
 
 		CP::THandle<CP::THitSelection> hitsCluster = track->GetHits();
-		for (auto h: *hitsCluster) {
+		for (CP::THitSelection::const_iterator hi = hitsCluster->begin(); hi != hitsCluster->end(); ++hi) {
+		    CP::THandle<CP::THit> h = *hi;
 		    for (int ic = 0; ic < h->GetConstituentCount(); ic++) {			
 		    	CP::TGeometryId geomId = h->GetConstituent(ic)->GetGeomId();
 			if (CP::GeomId::Captain::IsXWire(geomId)) {
@@ -306,13 +322,53 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		    CP::THandle<CP::TG4Trajectory> t = trajs->GetTrajectory(p->GetTrackId());
 		    TLorentzVector t1 = t->GetInitialPosition();
 		    TLorentzVector t2 = t->GetFinalPosition();
-		    float truth_length = sqrt( (t1.X()-t2.X())*(t1.X()-t2.X()) + (t1.Y()-t2.Y())*(t1.Y()-t2.Y()) + (t1.Z()-t2.Z())*(t1.Z()-t2.Z()) );
+		    for (CP::TG4TrajectoryContainer::const_iterator ti = trajs->begin(); ti != trajs->end(); ++ti) {
+		        CP::TG4Trajectory traj = (*ti).second;
+			if (traj.GetPDGEncoding() == 2212) {
+			    if (traj.GetInitialPosition().X() < -500) continue;
+			    if (traj.GetInitialPosition() == t2) {
+				t2 = traj.GetFinalPosition();
+			    }
+			}
+		    }
+
+		    // Define the edges of the detector.
+		    // If trajectory escapes, cut it off.
+		    float t1X = 600;
+		    float t2X = -600;
+		    float t1Y = 600;
+		    float t2Y = -600;
+		    float t1Z = 100;
+		    float t2Z = -400;
+
+		    if (t1.X() < 500 && t1.X() > -500)
+			t1X = t1.X();
+		    if (t2.X() < 500 && t2.X() > -500)
+			t2X = t2.X();
+		    if (t1.Y() < 500 && t1.Y() > -500)
+			t1Y = t1.Y();
+		    if (t2.Y() < 500 && t2.Y() > -500)
+			t2Y = t2.Y();
+		    if (t1.Z() < 0 && t1.Z() > -350)
+			t1Z = t1.Z();
+		    if (t2.Z() < 0 && t2.Z() > -350)
+			t2Z = t2.Z();
+		    
+		    truth_trajectory_first_X.push_back(t1X);
+		    truth_trajectory_first_Y.push_back(t1Y);
+		    truth_trajectory_first_Z.push_back(t1Z);
+
+		    truth_trajectory_last_X.push_back(t2X);
+		    truth_trajectory_last_Y.push_back(t2Y);
+		    truth_trajectory_last_Z.push_back(t2Z);
+
+		    float truth_length = sqrt( (t1X-t2X)*(t1X-t2X) + (t1Y-t2Y)*(t1Y-t2Y) + (t1Z-t2Z)*(t1Z-t2Z) );
 		    truth_trajectory_length.push_back(truth_length);
 		}
 	    }	
 	}
     }
-    
+
     tree->Fill();
     run = 0;
     evt = 0;
@@ -358,13 +414,24 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 
     truth_trajectory_length.clear();
 
+    truth_trajectory_first_X.clear();
+    truth_trajectory_first_Y.clear();
+    truth_trajectory_first_Z.clear();
+
+    truth_trajectory_last_X.clear();
+    truth_trajectory_last_Y.clear();
+    truth_trajectory_last_Z.clear();
+
+
     
     return true;
 }
 // Called at least once.  If multiple file are open, it will be called
 // for each one.   Notice there are two forms...
 void CP::TTreeMakerLoop::Finalize(CP::TRootOutput * const output) {
+    
     hfile->Write();
     //gSystem->Exec("mv tracks.root "+fName);
+
 }
 

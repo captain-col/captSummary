@@ -37,7 +37,6 @@ public:
     virtual void Initialize(void);
     void Finalize(CP::TRootOutput * const output);
 private:
-  
     TFile* hfile;
     TTree* tree;
 
@@ -88,5 +87,14 @@ private:
     std::vector<double> truth_particle_pz;
     
     std::vector<double> truth_trajectory_length;
+
+    std::vector<double> truth_trajectory_first_X;
+    std::vector<double> truth_trajectory_first_Y;
+    std::vector<double> truth_trajectory_first_Z;
+
+    std::vector<double> truth_trajectory_last_X;
+    std::vector<double> truth_trajectory_last_Y;
+    std::vector<double> truth_trajectory_last_Z;
+
     
 };
