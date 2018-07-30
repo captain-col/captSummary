@@ -215,17 +215,18 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		double corrected_Zposl = -999.;
 		double Zposf;
 		double Zposl;
+
+		corrected_Zposf = min_hit.Z();
+		corrected_Zposl = max_hit.Z();
 		
 		if (min_hit.Z() < -300 && min_hit.Z() > -1000) {
 		    Zposf = min_hit.Z();
-		    corrected_Zposf = min_hit.Z();
 		    Zposl = max_hit.Z();
-		    corrected_Zposl = max_hit.Z();
 		
 		    for (size_t k = 0; k<PDS_deltaTs.size(); k++) {
-			if (Zposf + PDS_deltaTs[k]*1.6*1000000 < 10 && Zposf + PDS_deltaTs[k]*1.6*1000000 > -320) {
-			    corrected_Zposf = Zposf + PDS_deltaTs[k]*1.6*1000000;
-			    corrected_Zposl = Zposl + PDS_deltaTs[k]*1.6*1000000;
+			if (Zposf + PDS_deltaTs[k]*1.6*1.000000e-3 < 10 && Zposf + PDS_deltaTs[k]*1.6*1.000000e-3 > -320) {
+			    corrected_Zposf = Zposf + PDS_deltaTs[k]*1.6*1.000000e-3;
+			    corrected_Zposl = Zposl + PDS_deltaTs[k]*1.6*1.000000e-3;
 			    break;
 			}		    
 		    }	       		
