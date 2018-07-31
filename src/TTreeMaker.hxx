@@ -74,7 +74,8 @@ private:
     std::vector<int> PDS_trigger_type;
     std::vector<double> PDS_energy;
     std::vector<int> PDS_beam_trigger;
-
+std::vector<double> PDS_qsum;
+std::vector<double> PDS_qmax;
     std::vector<double> truth_vertex_X;
     std::vector<double> truth_vertex_Y;
     std::vector<double> truth_vertex_Z;

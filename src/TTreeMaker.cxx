@@ -151,8 +151,10 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
     PDS_RF_time.clear();
     PDS_delta_time.clear();
     PDS_trigger_type.clear();
-    PDS_energy.clear();
-    PDS_beam_trigger.clear();
+    PDS_energy.clear(); 	
+   PDS_beam_trigger.clear();
+	PDS_qsum.clear();
+	PDS_qmax.clear();
 
     truth_vertex_X.clear();
     truth_vertex_Y.clear();
@@ -213,6 +215,8 @@ void CP::TTreeMakerLoop::Initialize(void) {
     tree->Branch("PDS_trigger_type",&PDS_trigger_type);
     tree->Branch("PDS_energy",&PDS_energy);
     tree->Branch("PDS_beam_trigger",&PDS_beam_trigger);
+	tree->Branch("PDS_qSum",&PDS_qsum);
+    tree->Branch("PDS_qMax",&PDS_qmax);
 
     tree->Branch("truth_vertex_X",&truth_vertex_X);
     tree->Branch("truth_vertex_Y",&truth_vertex_Y);
@@ -275,7 +279,9 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		PDS_trigger_type.push_back((eventPMT->Get<CP::TRealDatum>("TriggerType"))->GetValue());
 		PDS_energy.push_back((eventPMT->Get<CP::TRealDatum>("Energy_MeV"))->GetValue());
 		PDS_beam_trigger.push_back((eventPMT->Get<CP::TRealDatum>("BeamTrig"))->GetValue());
-	    }
+		PDS_qsum.push_back((eventPMT->Get<CP::TRealDatum>("qSum"))->GetValue());	
+		PDS_qmax.push_back((eventPMT->Get<CP::TRealDatum>("qMax"))->GetValue());    
+}
 	}
     }	
     if (tracks) {
@@ -508,6 +514,8 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     PDS_trigger_type.clear();
     PDS_energy.clear();
     PDS_beam_trigger.clear();
+	PDS_qsum.clear();
+	PDS_qmax.clear();
 
     truth_vertex_X.clear();
     truth_vertex_Y.clear();
