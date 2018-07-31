@@ -29,6 +29,94 @@
 #include <TTree.h>
 #include <TSystem.h>
 
+
+
+std::vector<std::pair<double,double>> Recalculation(std::vector<double>& minHit,std::vector<double>& maxHit,const std::vector<double>& deltaT){
+
+    std::vector<double> delta;
+
+    std::vector<double>* minZ(new std::vector<double>);
+    std::vector<double>* maxZ(new std::vector<double>);
+
+    for(std::size_t i=0;i<minHit.size();++i){
+      minZ->push_back(minHit[i]);
+      maxZ->push_back(maxHit[i]);
+    }
+    
+    for(std::size_t i=0;i<deltaT.size();++i){
+        delta.push_back(1.0*deltaT[i]*1.6/1000.0);
+
+    }
+
+    std::vector<std::pair<double,double>> newZ;
+    int ntracks = minZ->size();
+    int npds = delta.size();
+    if(npds>0 && npds<10){
+
+    
+    for(int i=0;i<ntracks;++i){
+        if((*minZ)[i]>0){newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));continue;}
+        if((*maxZ)[i]>0){
+            newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
+            continue;}
+        
+        if(fabs((*minZ)[i]-(*maxZ)[i])>9999){
+            newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
+            continue;}
+        
+        int npds_d = delta.size();
+        
+            if(npds_d>0 && npds_d<10){
+                double min=9999;
+                int k=0;
+                for(int j=0;j<npds_d;++j){
+                    double minimum =0;
+                    minimum=fabs((*minZ)[i]+delta[j]);
+                    if(minimum+160<min && -1.0*(*minZ)[i]>delta[j]){k=j;min=minimum;}
+                }
+                
+                /*if((*minZ)[i]>-350 && (*minZ)[i]<-0 && (*minZ)[i]+delta[k]>0){
+                    std::cout<<"OUTOF1stPEAK"<<std::endl;
+                    std::cout<<(*minZ)[i]<<" ; "<<(*minZ)[i]+delta[k]<<std::endl;}*/
+                
+                if((*minZ)[i]+delta[k]>0){
+                    newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
+                    continue;}
+             
+                newZ.push_back(std::make_pair((*minZ)[i]+delta[k],(*maxZ)[i]+delta[k]));
+                
+                
+                for(int j=i+1;j<ntracks;j++){
+                    if(fabs((*minZ)[i]-(*minZ)[j])<40){
+                        
+             
+                        newZ.push_back(std::make_pair((*minZ)[i+1]+delta[k],(*maxZ)[i+1]+delta[k]));
+                        i++;
+                    }
+                    else{break;}
+                }
+                
+                delta.erase(delta.begin()+k);
+        }else{
+  
+            newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
+            
+        }
+        
+    }
+
+    delete minZ;
+    delete maxZ;
+    return newZ;
+    }else {
+      delete minZ;
+    delete maxZ;
+      return newZ;
+    }
+}
+
+
+
 CP::TTreeMakerLoop::TTreeMakerLoop() {
 
     run = 0;
@@ -210,7 +298,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		last_hit_Y.push_back(max_hit.Y());
 		first_hit_Z.push_back(min_hit.Z());
 		last_hit_Z.push_back(max_hit.Z());
-
+#ifdef correction1;
 		double corrected_Zposf = -999.;
 		double corrected_Zposl = -999.;
 		double Zposf;
@@ -234,7 +322,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 
 		corrected_first_hit_Z.push_back(corrected_Zposf);
 		corrected_last_hit_Z.push_back(corrected_Zposl);
-
+#endif
 		float length = sqrt( (min_hit.X()-max_hit.X())*(min_hit.X()-max_hit.X()) + (min_hit.Y()-max_hit.Y())*(min_hit.Y()-max_hit.Y()) + (min_hit.Z()-max_hit.Z())*(min_hit.Z()-max_hit.Z()) );
 
 		float energy = length*1.0;
@@ -303,6 +391,27 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     else {
 	std::cout<<"NO TRACKS"<<std::endl;
     }
+    #define correction2
+    #ifdef correction2
+
+    for(std::size_t i=0;i<first_hit_Z.size();++i){
+      std::vector<std::pair<double,double>> newZ;
+      int npds = PDS_deltaTs.size();
+
+      if(npds>0 && npds<10){
+	newZ=Recalculation(first_hit_Z,last_hit_Z,PDS_deltaTs);
+	for(std::size_t j=0; j<newZ.size();++j){
+	  corrected_first_hit_Z.push_back(newZ[j].first);
+	  corrected_last_hit_Z.push_back(newZ[j].second);
+	}
+      }else{
+	corrected_first_hit_Z.push_back(first_hit_Z[i]);
+	corrected_last_hit_Z.push_back(last_hit_Z[i]);
+      }
+
+    }
+
+    #endif
 
     if (vertex) {
 	for (CP::TG4PrimaryVertexContainer::const_iterator v = vertex->begin(); v != vertex->end(); ++v) {
