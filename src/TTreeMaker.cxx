@@ -31,8 +31,8 @@
 
 
 
-std::vector<std::pair<double,double>> Recalculation(std::vector<double>& minHit,std::vector<double>& maxHit,const std::vector<double>& deltaT){
-
+std::vector<std::pair<double,double>> Recalculation(std::vector<double>& minHit,std::vector<double>& maxHit,const std::vector<double>& deltaT,std::vector<double>* pdsEn){
+	std::vector<double> ene;
     std::vector<double> delta;
 
     std::vector<double>* minZ(new std::vector<double>);
@@ -45,7 +45,7 @@ std::vector<std::pair<double,double>> Recalculation(std::vector<double>& minHit,
     
     for(std::size_t i=0;i<deltaT.size();++i){
         delta.push_back(1.0*deltaT[i]*1.6/1000.0);
-
+	//	ene.push_back((*pdsEn)[i]);
     }
 
     std::vector<std::pair<double,double>> newZ;
@@ -55,14 +55,17 @@ std::vector<std::pair<double,double>> Recalculation(std::vector<double>& minHit,
 
     
     for(int i=0;i<ntracks;++i){
-        if((*minZ)[i]>0){newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));continue;}
+        if((*minZ)[i]>0){newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
+ene.push_back(-50);continue;}
         if((*maxZ)[i]>0){
             newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
-            continue;}
+ene.push_back(-50);     
+       continue;}
         
         if(fabs((*minZ)[i]-(*maxZ)[i])>9999){
             newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
-            continue;}
+ene.push_back(-50);            
+continue;}
         
         int npds_d = delta.size();
         
@@ -84,12 +87,12 @@ std::vector<std::pair<double,double>> Recalculation(std::vector<double>& minHit,
                     continue;}
              
                 newZ.push_back(std::make_pair((*minZ)[i]+delta[k],(*maxZ)[i]+delta[k]));
-                
+              ene.push_back((*pdsEn)[k]);  
                 
                 for(int j=i+1;j<ntracks;j++){
                     if(fabs((*minZ)[i]-(*minZ)[j])<40){
                         
-             
+             ene.push_back((*pdsEn)[k]);
                         newZ.push_back(std::make_pair((*minZ)[i+1]+delta[k],(*maxZ)[i+1]+delta[k]));
                         i++;
                     }
@@ -100,11 +103,11 @@ std::vector<std::pair<double,double>> Recalculation(std::vector<double>& minHit,
         }else{
   
             newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
-            
+     	ene.push_back(-50);       
         }
         
     }
-
+	*pdsEn=ene;
     delete minZ;
     delete maxZ;
     return newZ;
@@ -132,6 +135,7 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
     last_hit_Z.clear();
     corrected_first_hit_Z.clear();
     corrected_last_hit_Z.clear();
+	corrected_PDS_energy.clear();
 
     first_wire_X.clear();
     first_wire_U.clear();
@@ -400,22 +404,28 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     #define correction2
     #ifdef correction2
 
-    for(std::size_t i=0;i<first_hit_Z.size();++i){
       std::vector<std::pair<double,double>> newZ;
       int npds = PDS_deltaTs.size();
 
       if(npds>0 && npds<10){
-	newZ=Recalculation(first_hit_Z,last_hit_Z,PDS_deltaTs);
+	std::vector<double>* pdsEn(new std::vector<double>);
+	*pdsEn = PDS_energy;
+	newZ=Recalculation(first_hit_Z,last_hit_Z,PDS_deltaTs,pdsEn);
+	
 	for(std::size_t j=0; j<newZ.size();++j){
 	  corrected_first_hit_Z.push_back(newZ[j].first);
 	  corrected_last_hit_Z.push_back(newZ[j].second);
+	corrected_PDS_energy.push_back((*pdsEn)[j]);	
 	}
+	delete pdsEn;
       }else{
-	corrected_first_hit_Z.push_back(first_hit_Z[i]);
-	corrected_last_hit_Z.push_back(last_hit_Z[i]);
-      }
+for(std::size_t j=0; j<first_hit_Z.size();++j){
+	corrected_first_hit_Z.push_back(first_hit_Z[j]);
+	corrected_last_hit_Z.push_back(last_hit_Z[j]);
+      corrected_PDS_energy.push_back(-50);
+}
+	}
 
-    }
 
     #endif
 
@@ -493,6 +503,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     last_hit_Z.clear();
     corrected_first_hit_Z.clear();
     corrected_last_hit_Z.clear();
+	corrected_PDS_energy.clear();
 
     first_wire_X.clear();
     first_wire_U.clear();

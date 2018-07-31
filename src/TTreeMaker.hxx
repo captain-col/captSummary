@@ -53,6 +53,7 @@ private:
 
     std::vector<double> corrected_first_hit_Z;
     std::vector<double> corrected_last_hit_Z;
+	std::vector<double> corrected_PDS_energy;     
 
     std::vector<int> first_wire_X;
     std::vector<int> first_wire_U;
