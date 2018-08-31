@@ -29,18 +29,36 @@
 #include <TTree.h>
 #include <TSystem.h>
 
+bool inBeamXY(double x, double y) {
+    double a = -0.1188;
+    double b = -54.9894;
+    double width = 54/2;
+    double dist=fabs(a*x-y+b)/sqrt(a*a+1);
+    if(dist<width ) return true;
 
+    else return false;
+}
 
-std::vector<std::pair<double,double>> Recalculation(std::vector<double>& minHit,std::vector<double>& maxHit,const std::vector<double>& deltaT,std::vector<double>* pdsEn){
-	std::vector<double> ene;
+bool inPeaksZ(double z) {
+
+    if((z>-195 && z<-145) || (z>-510 && z<-460) || (z>-830 && z<-780)) return true;
+    else return false;
+}
+
+std::vector<std::pair<double,double>> Recalculation(std::vector<double>& minHitX,std::vector<double>& minHitY,std::vector<double>& minHitZ,std::vector<double>& maxHitZ,const std::vector<double>& deltaT,std::vector<double>* pdsEn){
+    std::vector<double> ene;
     std::vector<double> delta;
 
+    std::vector<double>* minX(new std::vector<double>);
+    std::vector<double>* minY(new std::vector<double>);
     std::vector<double>* minZ(new std::vector<double>);
     std::vector<double>* maxZ(new std::vector<double>);
 
-    for(std::size_t i=0;i<minHit.size();++i){
-      minZ->push_back(minHit[i]);
-      maxZ->push_back(maxHit[i]);
+    for(std::size_t i=0;i<minHitZ.size();++i){
+	minX->push_back(minHitX[i]);
+	minY->push_back(minHitY[i]);
+	minZ->push_back(minHitZ[i]);
+	maxZ->push_back(maxHitZ[i]);
     }
     
     for(std::size_t i=0;i<deltaT.size();++i){
@@ -54,20 +72,41 @@ std::vector<std::pair<double,double>> Recalculation(std::vector<double>& minHit,
     if(npds>0 && npds<10){
 
     
-    for(int i=0;i<ntracks;++i){
-        if((*minZ)[i]>0){newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
-ene.push_back(-50);continue;}
-        if((*maxZ)[i]>0){
-            newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
-ene.push_back(-50);     
-       continue;}
+	for(int i=0;i<ntracks;++i){
+	    if ((*minZ)[i]>0) {
+		newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
+		ene.push_back(-50);
+		continue;
+	    }
+	    if ((*maxZ)[i]>0) {
+		newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
+		ene.push_back(-50);
+		continue;
+	    }
         
-        if(fabs((*minZ)[i]-(*maxZ)[i])>9999){
-            newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
-ene.push_back(-50);            
-continue;}
+	    if ((*minZ)[i]<-1000) {
+		newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
+		ene.push_back(-50);
+		continue;
+	    }
+	    if ((*maxZ)[i]<-1000) {
+		newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
+		ene.push_back(-50);
+		continue;
+	    }
         
-        int npds_d = delta.size();
+	    if (fabs((*minZ)[i]-(*maxZ)[i])>9999){
+		newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
+		ene.push_back(-50);
+		continue;
+	    }
+
+	    if (!inBeamXY((*minX)[i],(*minY)[i]) || !inPeaksZ((*minZ)[i])) {
+		newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
+		ene.push_back(-50);
+		continue;
+	    }
+	    int npds_d = delta.size();
         
             if(npds_d>0 && npds_d<10){
                 double min=9999;
@@ -79,20 +118,20 @@ continue;}
                 }
                 
                 /*if((*minZ)[i]>-350 && (*minZ)[i]<-0 && (*minZ)[i]+delta[k]>0){
-                    std::cout<<"OUTOF1stPEAK"<<std::endl;
-                    std::cout<<(*minZ)[i]<<" ; "<<(*minZ)[i]+delta[k]<<std::endl;}*/
+		  std::cout<<"OUTOF1stPEAK"<<std::endl;
+		  std::cout<<(*minZ)[i]<<" ; "<<(*minZ)[i]+delta[k]<<std::endl;}*/
                 
                 if((*minZ)[i]+delta[k]>0){
                     newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
                     continue;}
              
                 newZ.push_back(std::make_pair((*minZ)[i]+delta[k],(*maxZ)[i]+delta[k]));
-              ene.push_back((*pdsEn)[k]);  
+		ene.push_back((*pdsEn)[k]);
                 
                 for(int j=i+1;j<ntracks;j++){
                     if(fabs((*minZ)[i]-(*minZ)[j])<40){
                         
-             ene.push_back((*pdsEn)[k]);
+			ene.push_back((*pdsEn)[k]);
                         newZ.push_back(std::make_pair((*minZ)[i+1]+delta[k],(*maxZ)[i+1]+delta[k]));
                         i++;
                     }
@@ -100,21 +139,21 @@ continue;}
                 }
                 
                 delta.erase(delta.begin()+k);
-        }else{
+	    }else{
   
-            newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
-     	ene.push_back(-50);       
-        }
+		newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
+		ene.push_back(-50);
+	    }
         
-    }
+	}
 	*pdsEn=ene;
-    delete minZ;
-    delete maxZ;
-    return newZ;
+	delete minZ;
+	delete maxZ;
+	return newZ;
     }else {
-      delete minZ;
-    delete maxZ;
-      return newZ;
+	delete minZ;
+	delete maxZ;
+	return newZ;
     }
 }
 
@@ -135,7 +174,7 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
     last_hit_Z.clear();
     corrected_first_hit_Z.clear();
     corrected_last_hit_Z.clear();
-	corrected_PDS_energy.clear();
+    corrected_PDS_energy.clear();
 
     first_wire_X.clear();
     first_wire_U.clear();
@@ -156,9 +195,10 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
     PDS_delta_time.clear();
     PDS_trigger_type.clear();
     PDS_energy.clear(); 	
-   PDS_beam_trigger.clear();
-	PDS_qsum.clear();
-	PDS_qmax.clear();
+    PDS_beam_trigger.clear();
+    PDS_qsum.clear();
+    PDS_qmax.clear();
+    PDS_event.clear();
 
     truth_vertex_X.clear();
     truth_vertex_Y.clear();
@@ -198,6 +238,7 @@ void CP::TTreeMakerLoop::Initialize(void) {
     tree->Branch("last_hit_Z",&last_hit_Z);
     tree->Branch("corrected_first_hit_Z",&corrected_first_hit_Z);
     tree->Branch("corrected_last_hit_Z",&corrected_last_hit_Z);
+    tree->Branch("corrected_PDS_energy",&corrected_PDS_energy);
 
     tree->Branch("first_wire_X",&first_wire_X);
     tree->Branch("first_wire_U",&first_wire_U);
@@ -219,8 +260,9 @@ void CP::TTreeMakerLoop::Initialize(void) {
     tree->Branch("PDS_trigger_type",&PDS_trigger_type);
     tree->Branch("PDS_energy",&PDS_energy);
     tree->Branch("PDS_beam_trigger",&PDS_beam_trigger);
-	tree->Branch("PDS_qSum",&PDS_qsum);
+    tree->Branch("PDS_qSum",&PDS_qsum);
     tree->Branch("PDS_qMax",&PDS_qmax);
+    tree->Branch("PDS_event",&PDS_event);
 
     tree->Branch("truth_vertex_X",&truth_vertex_X);
     tree->Branch("truth_vertex_Y",&truth_vertex_Y);
@@ -285,7 +327,8 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		PDS_beam_trigger.push_back((eventPMT->Get<CP::TRealDatum>("BeamTrig"))->GetValue());
 		PDS_qsum.push_back((eventPMT->Get<CP::TRealDatum>("qSum"))->GetValue());	
 		PDS_qmax.push_back((eventPMT->Get<CP::TRealDatum>("qMax"))->GetValue());    
-}
+		PDS_event.push_back((eventPMT->Get<CP::TRealDatum>("eventNumber"))->GetValue());
+	    }
 	}
     }	
     if (tracks) {
@@ -308,7 +351,8 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		last_hit_Y.push_back(max_hit.Y());
 		first_hit_Z.push_back(min_hit.Z());
 		last_hit_Z.push_back(max_hit.Z());
-#ifdef correction1;
+
+#ifdef correction1		
 		double corrected_Zposf = -999.;
 		double corrected_Zposl = -999.;
 		double Zposf;
@@ -344,8 +388,8 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		float sumCorrCH = 0.0;
 	
 		int firstWireX = -999;
-		int firstWireU = -999;
-		int firstWireV = -999;
+		// int firstWireU = -999;
+		// int firstWireV = -999;
 
 		double firstChargeX = 0.0;
 
@@ -375,7 +419,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		
 		float tdQdx = -1.0;
 		float tdEdx = -1.0;
-		float tdEdxBox = -1.0;
+		// float tdEdxBox = -1.0;
 
 		if (length > 10) {
 		    tdQdx = (sumCorrCH)/(length);
@@ -384,16 +428,16 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		    float k_B = 0.0486;// * (unit::g/unit::cm)/(unit::MeV/unit::cm);
 		    float epsilon = 0.5;
 
-		    float alpha = 0.93;
-		    float beta = 0.3; // *unit::cm/unit::MeV;
+		    // float alpha = 0.93;
+		    // float beta = 0.3; // *unit::cm/unit::MeV;
 		    
 		    tdEdx = tdQdx/(A_B/W_ion - k_B*tdQdx/epsilon);
-		    tdEdxBox = (exp(beta*W_ion*(tdQdx)) - alpha)/beta;
+		    // tdEdxBox = (exp(beta*W_ion*(tdQdx)) - alpha)/beta;
 		    
 		    dQdx.push_back(tdQdx);
 		    dEdx.push_back(tdEdx);		
 		    
-		 }
+		}
 		
 	    }
 	}
@@ -401,33 +445,33 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     else {
 	std::cout<<"NO TRACKS"<<std::endl;
     }
-    #define correction2
-    #ifdef correction2
+#define correction2
+#ifdef correction2
 
-      std::vector<std::pair<double,double>> newZ;
-      int npds = PDS_deltaTs.size();
+    std::vector<std::pair<double,double>> newZ;
+    int npds = PDS_deltaTs.size();
 
-      if(npds>0 && npds<10){
+    if(npds>0 && npds<10){
 	std::vector<double>* pdsEn(new std::vector<double>);
 	*pdsEn = PDS_energy;
-	newZ=Recalculation(first_hit_Z,last_hit_Z,PDS_deltaTs,pdsEn);
+	newZ=Recalculation(first_hit_X,first_hit_Y,first_hit_Z,last_hit_Z,PDS_deltaTs,pdsEn);
 	
 	for(std::size_t j=0; j<newZ.size();++j){
-	  corrected_first_hit_Z.push_back(newZ[j].first);
-	  corrected_last_hit_Z.push_back(newZ[j].second);
-	corrected_PDS_energy.push_back((*pdsEn)[j]);	
+	    corrected_first_hit_Z.push_back(newZ[j].first);
+	    corrected_last_hit_Z.push_back(newZ[j].second);
+	    corrected_PDS_energy.push_back((*pdsEn)[j]);
 	}
 	delete pdsEn;
-      }else{
-for(std::size_t j=0; j<first_hit_Z.size();++j){
-	corrected_first_hit_Z.push_back(first_hit_Z[j]);
-	corrected_last_hit_Z.push_back(last_hit_Z[j]);
-      corrected_PDS_energy.push_back(-50);
-}
+    }else{
+	for(std::size_t j=0; j<first_hit_Z.size();++j){
+	    corrected_first_hit_Z.push_back(first_hit_Z[j]);
+	    corrected_last_hit_Z.push_back(last_hit_Z[j]);
+	    corrected_PDS_energy.push_back(-50);
 	}
+    }
 
 
-    #endif
+#endif
 
     if (vertex) {
 	for (CP::TG4PrimaryVertexContainer::const_iterator v = vertex->begin(); v != vertex->end(); ++v) {
@@ -503,7 +547,7 @@ for(std::size_t j=0; j<first_hit_Z.size();++j){
     last_hit_Z.clear();
     corrected_first_hit_Z.clear();
     corrected_last_hit_Z.clear();
-	corrected_PDS_energy.clear();
+    corrected_PDS_energy.clear();
 
     first_wire_X.clear();
     first_wire_U.clear();
@@ -525,8 +569,9 @@ for(std::size_t j=0; j<first_hit_Z.size();++j){
     PDS_trigger_type.clear();
     PDS_energy.clear();
     PDS_beam_trigger.clear();
-	PDS_qsum.clear();
-	PDS_qmax.clear();
+    PDS_qsum.clear();
+    PDS_qmax.clear();
+    PDS_event.clear();
 
     truth_vertex_X.clear();
     truth_vertex_Y.clear();
