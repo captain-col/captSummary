@@ -22,6 +22,7 @@
 #include <TPad.h>
 #include <TFile.h>
 #include <TTree.h>
+#include <TChain.h>
 #include <TSystem.h>
 
 
@@ -53,7 +54,7 @@ private:
 
     std::vector<double> corrected_first_hit_Z;
     std::vector<double> corrected_last_hit_Z;
-	std::vector<double> corrected_PDS_energy;     
+    std::vector<double> corrected_PDS_energy;     
 
     std::vector<int> first_wire_X;
     std::vector<int> first_wire_U;
@@ -75,8 +76,10 @@ private:
     std::vector<int> PDS_trigger_type;
     std::vector<double> PDS_energy;
     std::vector<int> PDS_beam_trigger;
-std::vector<double> PDS_qsum;
-std::vector<double> PDS_qmax;
+    std::vector<double> PDS_qsum;
+    std::vector<double> PDS_qmax;
+    std::vector<double> PDS_event;    
+
     std::vector<double> truth_vertex_X;
     std::vector<double> truth_vertex_Y;
     std::vector<double> truth_vertex_Z;
@@ -96,6 +99,11 @@ std::vector<double> PDS_qmax;
     std::vector<double> truth_trajectory_last_X;
     std::vector<double> truth_trajectory_last_Y;
     std::vector<double> truth_trajectory_last_Z;
+
+
+    TChain *chainz = new TChain("new_tree");   
+    Int_t entryPDS = 0;
+    Float_t kePDS = 0;
 
     
 };

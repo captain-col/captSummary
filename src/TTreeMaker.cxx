@@ -62,6 +62,7 @@ std::vector<std::pair<double,double>> Recalculation(std::vector<double>& minHitX
     }
     
     for(std::size_t i=0;i<deltaT.size();++i){
+	if (deltaT[i] > 500e3) continue;
         delta.push_back(1.0*deltaT[i]*1.6/1000.0);
 	//	ene.push_back((*pdsEn)[i]);
     }
@@ -69,7 +70,7 @@ std::vector<std::pair<double,double>> Recalculation(std::vector<double>& minHitX
     std::vector<std::pair<double,double>> newZ;
     int ntracks = minZ->size();
     int npds = delta.size();
-    if(npds>0 && npds<10){
+    if(npds>0 ){//&& npds<10){
 
     
 	for(int i=0;i<ntracks;++i){
@@ -107,35 +108,45 @@ std::vector<std::pair<double,double>> Recalculation(std::vector<double>& minHitX
 		continue;
 	    }
 	    int npds_d = delta.size();
-        
-            if(npds_d>0 && npds_d<10){
+	    //std::cout<<"Z="<<(*minZ)[i]<<std::endl;
+            if(npds_d>0){// && npds_d<10){
                 double min=9999;
                 int k=0;
                 for(int j=0;j<npds_d;++j){
                     double minimum =0;
+		    // std::cout<<"corrZ="<<(*minZ)[i]+delta[j]<<std::endl;
+		    // std::cout<<"dT="<<delta[j]*1000.0/1.6<<std::endl;
                     minimum=fabs((*minZ)[i]+delta[j]);
-                    if(minimum+160<min && -1.0*(*minZ)[i]>delta[j]){k=j;min=minimum;}
+                    if(minimum+160<min && -1.0*(*minZ)[i]>delta[j]) {
+			k=j;
+			min=minimum;
+		    }
                 }
                 
-                /*if((*minZ)[i]>-350 && (*minZ)[i]<-0 && (*minZ)[i]+delta[k]>0){
+                /*
+		  if((*minZ)[i]>-350 && (*minZ)[i]<-0 && (*minZ)[i]+delta[k]>0){
 		  std::cout<<"OUTOF1stPEAK"<<std::endl;
-		  std::cout<<(*minZ)[i]<<" ; "<<(*minZ)[i]+delta[k]<<std::endl;}*/
+		  std::cout<<(*minZ)[i]<<" ; "<<(*minZ)[i]+delta[k]<<std::endl;}
+		*/
                 
                 if((*minZ)[i]+delta[k]>0){
                     newZ.push_back(std::make_pair((*minZ)[i],(*maxZ)[i]));
-                    continue;}
+                    continue;
+		}
+		//std::cout<<"corrZ="<<(*minZ)[i]+delta[k]<<std::endl;
              
                 newZ.push_back(std::make_pair((*minZ)[i]+delta[k],(*maxZ)[i]+delta[k]));
 		ene.push_back((*pdsEn)[k]);
                 
                 for(int j=i+1;j<ntracks;j++){
-                    if(fabs((*minZ)[i]-(*minZ)[j])<40){
-                        
+                    if(fabs((*minZ)[i]-(*minZ)[j])<40){                        
 			ene.push_back((*pdsEn)[k]);
                         newZ.push_back(std::make_pair((*minZ)[i+1]+delta[k],(*maxZ)[i+1]+delta[k]));
                         i++;
                     }
-                    else{break;}
+                    else{
+			break;
+		    }
                 }
                 
                 delta.erase(delta.begin()+k);
@@ -307,10 +318,15 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     chanInfo.SetContext(event.GetContext());
 
     //CP::TGeometryInfo& geomInfo = CP::TGeometryInfo::Get();
+    // std::cout<<event.GetContext()<<std::endl;
+    // std::cout<<TPC_time<<std::endl;
+
 
     
     TString pdsEvent = "";
-    if(dataPMT){ 
+    if(dataPMT){
+	//std::cout<<"PDS size="<<dataPMT->size()<<std::endl;
+
 	for (u_int i=0; i<dataPMT->size(); i++) {
 	    pdsEvent.Form("~/pmtData/PDSEvent_%d",i);
 	    CP::THandle<CP::TEvent> eventPMT = event.Get<CP::TEvent>(pdsEvent);
@@ -325,12 +341,13 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		PDS_trigger_type.push_back((eventPMT->Get<CP::TRealDatum>("TriggerType"))->GetValue());
 		PDS_energy.push_back((eventPMT->Get<CP::TRealDatum>("Energy_MeV"))->GetValue());
 		PDS_beam_trigger.push_back((eventPMT->Get<CP::TRealDatum>("BeamTrig"))->GetValue());
-		PDS_qsum.push_back((eventPMT->Get<CP::TRealDatum>("qSum"))->GetValue());	
-		PDS_qmax.push_back((eventPMT->Get<CP::TRealDatum>("qMax"))->GetValue());    
+		//PDS_qsum.push_back((eventPMT->Get<CP::TRealDatum>("qSum"))->GetValue());	
+		//PDS_qmax.push_back((eventPMT->Get<CP::TRealDatum>("qMax"))->GetValue());    
 		PDS_event.push_back((eventPMT->Get<CP::TRealDatum>("eventNumber"))->GetValue());
 	    }
 	}
-    }	
+    }
+
     if (tracks) {
 	for (CP::TReconObjectContainer::const_iterator t = tracks->begin(); t != tracks->end(); ++t) {
 	    TLorentzVector min_hit;
@@ -352,30 +369,32 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		first_hit_Z.push_back(min_hit.Z());
 		last_hit_Z.push_back(max_hit.Z());
 
-#ifdef correction1		
-		double corrected_Zposf = -999.;
-		double corrected_Zposl = -999.;
-		double Zposf;
-		double Zposl;
+#ifdef correction1
+		{
+		    double corrected_Zposf = -999.;
+		    double corrected_Zposl = -999.;
+		    double Zposf;
+		    double Zposl;
 
-		corrected_Zposf = min_hit.Z();
-		corrected_Zposl = max_hit.Z();
+		    corrected_Zposf = min_hit.Z();
+		    corrected_Zposl = max_hit.Z();
 		
-		if (min_hit.Z() < -300 && min_hit.Z() > -1000) {
-		    Zposf = min_hit.Z();
-		    Zposl = max_hit.Z();
+		    if (min_hit.Z() < -300 && min_hit.Z() > -1000) {
+			Zposf = min_hit.Z();
+			Zposl = max_hit.Z();
 		
-		    for (size_t k = 0; k<PDS_deltaTs.size(); k++) {
-			if (Zposf + PDS_deltaTs[k]*1.6*1.000000e-3 < 10 && Zposf + PDS_deltaTs[k]*1.6*1.000000e-3 > -320) {
-			    corrected_Zposf = Zposf + PDS_deltaTs[k]*1.6*1.000000e-3;
-			    corrected_Zposl = Zposl + PDS_deltaTs[k]*1.6*1.000000e-3;
-			    break;
-			}		    
-		    }	       		
+			for (size_t k = 0; k<PDS_deltaTs.size(); k++) {
+			    if (Zposf + PDS_deltaTs[k]*1.6*1.000000e-3 < 10 && Zposf + PDS_deltaTs[k]*1.6*1.000000e-3 > -320) {
+				corrected_Zposf = Zposf + PDS_deltaTs[k]*1.6*1.000000e-3;
+				corrected_Zposl = Zposl + PDS_deltaTs[k]*1.6*1.000000e-3;
+				break;
+			    }		    
+			}	       		
+		    }
+
+		    corrected_first_hit_Z.push_back(corrected_Zposf);
+		    corrected_last_hit_Z.push_back(corrected_Zposl);
 		}
-
-		corrected_first_hit_Z.push_back(corrected_Zposf);
-		corrected_last_hit_Z.push_back(corrected_Zposl);
 #endif
 		float length = sqrt( (min_hit.X()-max_hit.X())*(min_hit.X()-max_hit.X()) + (min_hit.Y()-max_hit.Y())*(min_hit.Y()-max_hit.Y()) + (min_hit.Z()-max_hit.Z())*(min_hit.Z()-max_hit.Z()) );
 
@@ -451,7 +470,8 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     std::vector<std::pair<double,double>> newZ;
     int npds = PDS_deltaTs.size();
 
-    if(npds>0 && npds<10){
+    if (npds>0) {
+	// && npds<10){
 	std::vector<double>* pdsEn(new std::vector<double>);
 	*pdsEn = PDS_energy;
 	newZ=Recalculation(first_hit_X,first_hit_Y,first_hit_Z,last_hit_Z,PDS_deltaTs,pdsEn);
@@ -462,17 +482,17 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 	    corrected_PDS_energy.push_back((*pdsEn)[j]);
 	}
 	delete pdsEn;
-    }else{
-	for(std::size_t j=0; j<first_hit_Z.size();++j){
+    }
+    else {
+	for (std::size_t j=0; j<first_hit_Z.size();++j) {
 	    corrected_first_hit_Z.push_back(first_hit_Z[j]);
 	    corrected_last_hit_Z.push_back(last_hit_Z[j]);
 	    corrected_PDS_energy.push_back(-50);
 	}
-    }
-
+    }    
 
 #endif
-
+    
     if (vertex) {
 	for (CP::TG4PrimaryVertexContainer::const_iterator v = vertex->begin(); v != vertex->end(); ++v) {
 	    truth_vertex_X.push_back(v->GetPosition().X());
