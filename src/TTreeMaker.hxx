@@ -55,6 +55,7 @@ private:
     std::vector<double> corrected_first_hit_Z;
     std::vector<double> corrected_last_hit_Z;
     std::vector<double> corrected_PDS_energy;     
+    std::vector<double> corrected_PDS_hit_charge;     
 
     std::vector<int> first_wire_X;
     std::vector<int> first_wire_U;
@@ -75,10 +76,14 @@ private:
     std::vector<double> PDS_delta_time;
     std::vector<int> PDS_trigger_type;
     std::vector<double> PDS_energy;
+    std::vector<double> PDS_min_energy;
+    std::vector<double> PDS_max_energy;
     std::vector<int> PDS_beam_trigger;
     std::vector<double> PDS_qsum;
     std::vector<double> PDS_qmax;
     std::vector<double> PDS_event;    
+    std::vector<double> PDS_hit_charge;    
+    std::vector<double> PDS_tof;    
 
     std::vector<double> truth_vertex_X;
     std::vector<double> truth_vertex_Y;
