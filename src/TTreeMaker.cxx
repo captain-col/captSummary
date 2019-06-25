@@ -301,6 +301,16 @@ CP::TTreeMakerLoop::TTreeMakerLoop() {
     first_wire_X.clear();
     first_wire_U.clear();
     first_wire_V.clear();
+
+    hit2DWireNX.clear();
+ hit2DChargeX.clear();
+ hit2DTimeX.clear();
+hit2DWireNU.clear();
+ hit2DChargeU.clear();
+ hit2DTimeU.clear();
+hit2DWireNV.clear();
+ hit2DChargeV.clear();
+hit2DTimeV.clear();
     
     first_hit_charge_X.clear();
     first_hit_charge_U.clear();
@@ -369,6 +379,16 @@ void CP::TTreeMakerLoop::Initialize(void) {
     tree->Branch("first_wire_X",&first_wire_X);
     tree->Branch("first_wire_U",&first_wire_U);
     tree->Branch("first_wire_V",&first_wire_V);
+
+    tree->Branch("hits_2D_wireN_Xplane",&hit2DWireNX);
+    tree->Branch("hits_2D_Charge_Xplane",&hit2DChargeX);
+    tree->Branch("hits_2D_Time_Xplane",&hit2DTimeX);
+    tree->Branch("hits_2D_wireN_Uplane",&hit2DWireNU);
+    tree->Branch("hits_2D_Charge_Uplane",&hit2DChargeU);
+    tree->Branch("hits_2D_Time_Uplane",&hit2DTimeU);
+    tree->Branch("hits_2D_wireN_Vplane",&hit2DWireNV);
+    tree->Branch("hits_2D_Charge_Vplane",&hit2DChargeV);
+    tree->Branch("hits_2D_Time_Vplane",&hit2DTimeV);
     
     tree->Branch("first_hit_charge_X",&first_hit_charge_X);
     tree->Branch("first_hit_charge_U",&first_hit_charge_U);
@@ -537,12 +557,15 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		double firstChargeX = 0.0;
 
 		CP::THandle<CP::THitSelection> hitsCluster = track->GetHits();
+		std::set<CP::THandle<CP::THit>> xHits_set;
+		std::set<CP::THandle<CP::THit>> uHits_set;
+		std::set<CP::THandle<CP::THit>> vHits_set;
 		for (CP::THitSelection::const_iterator hi = hitsCluster->begin(); hi != hitsCluster->end(); ++hi) {
 		    CP::THandle<CP::THit> h = *hi;
-		    for (int ic = 0; ic < h->GetConstituentCount(); ic++) {			
+		    for (int ic = 0; ic < h->GetConstituentCount(); ic++) {
 		    	CP::TGeometryId geomId = h->GetConstituent(ic)->GetGeomId();
 			if (CP::GeomId::Captain::IsXWire(geomId)) {
-
+			  xHits_set.insert(h->GetConstituent(ic));
 			    Int_t wireN = CP::GeomId::Captain::GetWireNumber(geomId);
 			
 			    if ( wireN > firstWireX) {
@@ -554,8 +577,42 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 			    sumCorrCH += corrCH;
 			    sumCH += h->GetConstituent(ic)->GetCharge();
 			}
+			if (CP::GeomId::Captain::IsUWire(geomId)) {
+			  uHits_set.insert(h->GetConstituent(ic));
+			}
+			if (CP::GeomId::Captain::IsVWire(geomId)) {
+			  vHits_set.insert(h->GetConstituent(ic));
+			}
 		    }
 		}
+
+		for(std::set<CP::THandle<CP::THit>>::iterator it = xHits_set.begin();it!=xHits_set.end();++it){
+		    CP::TGeometryId geomId = (*it)->GetGeomId();
+		    int wireN = CP::GeomId::Captain::GetWireNumber(geomId);
+		    double hitCharge = (*it)->GetCharge();
+		    double hitTime = (*it)->GetTime();
+		    hit2DWireNX.push_back(wireN);
+		    hit2DChargeX.push_back(hitCharge);
+		    hit2DTimeX.push_back(hitTime);
+		  }
+		for(std::set<CP::THandle<CP::THit>>::iterator it = uHits_set.begin();it!=uHits_set.end();++it){
+		    CP::TGeometryId geomId = (*it)->GetGeomId();
+		    int wireN = CP::GeomId::Captain::GetWireNumber(geomId);
+		    double hitCharge = (*it)->GetCharge();
+		    double hitTime = (*it)->GetTime();
+		    hit2DWireNU.push_back(wireN);
+		    hit2DChargeU.push_back(hitCharge);
+		    hit2DTimeU.push_back(hitTime);
+		  }
+		for(std::set<CP::THandle<CP::THit>>::iterator it = vHits_set.begin();it!=vHits_set.end();++it){
+		    CP::TGeometryId geomId = (*it)->GetGeomId();
+		    int wireN = CP::GeomId::Captain::GetWireNumber(geomId);
+		    double hitCharge = (*it)->GetCharge();
+		    double hitTime = (*it)->GetTime();
+		    hit2DWireNV.push_back(wireN);
+		    hit2DChargeV.push_back(hitCharge);
+		    hit2DTimeV.push_back(hitTime);
+		  }
 
 		first_wire_X.push_back(firstWireX);
 		first_hit_charge_X.push_back(firstChargeX);
@@ -609,7 +666,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 	    corrected_PDS_hit_charge.push_back((*pdsHQ)[j]);
 	    
 	}
-	delete pdsEn;
+ 	delete pdsEn;
     }
     else {
 	for (std::size_t j=0; j<first_hit_Z.size();++j) {
@@ -701,6 +758,16 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     first_wire_X.clear();
     first_wire_U.clear();
     first_wire_V.clear();
+
+        hit2DWireNX.clear();
+ hit2DChargeX.clear();
+ hit2DTimeX.clear();
+hit2DWireNU.clear();
+ hit2DChargeU.clear();
+ hit2DTimeU.clear();
+hit2DWireNV.clear();
+ hit2DChargeV.clear();
+hit2DTimeV.clear();
     
     first_hit_charge_X.clear();
     first_hit_charge_U.clear();

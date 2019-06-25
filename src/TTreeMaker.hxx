@@ -61,6 +61,16 @@ private:
     std::vector<int> first_wire_U;
     std::vector<int> first_wire_V;
 
+  std::vector<int> hit2DWireNX;
+  std::vector<double> hit2DChargeX;
+  std::vector<double> hit2DTimeX;
+   std::vector<int> hit2DWireNU;
+  std::vector<double> hit2DChargeU;
+  std::vector<double> hit2DTimeU;
+   std::vector<int> hit2DWireNV;
+  std::vector<double> hit2DChargeV;
+  std::vector<double> hit2DTimeV;
+
     std::vector<double> first_hit_charge_X;
     std::vector<double> first_hit_charge_U;
     std::vector<double> first_hit_charge_V;
