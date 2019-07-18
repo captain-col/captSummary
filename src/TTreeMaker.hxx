@@ -61,6 +61,10 @@ private:
     std::vector<int> first_wire_U;
     std::vector<int> first_wire_V;
 
+  
+  std::vector<int> trackHitSyncX; // for each hit has index of starting point of correcponding track from first_wire_X array
+   std::vector<int> trackHitSyncU;// for each hit has index of starting point of correcponding track from first_wire_U array
+   std::vector<int> trackHitSyncV;// for each hit has index of starting point of correcponding track from first_wire_V array
   std::vector<int> hit2DWireNX;
   std::vector<double> hit2DChargeX;
   std::vector<double> hit2DTimeX;
