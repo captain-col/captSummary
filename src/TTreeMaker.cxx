@@ -599,7 +599,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		    int wireN = CP::GeomId::Captain::GetWireNumber(geomId);
 		    double hitCharge = (*it)->GetCharge();
 		    double hitTime = (*it)->GetTime();
-		    trackHitSyncX.push_back((int)first_wire_X.size()-1);
+		    trackHitSyncX.push_back((int)first_hit_X.size()-1);
 		    hit2DWireNX.push_back(wireN);
 		    hit2DChargeX.push_back(hitCharge);
 		    hit2DTimeX.push_back(hitTime);
@@ -609,7 +609,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		    int wireN = CP::GeomId::Captain::GetWireNumber(geomId);
 		    double hitCharge = (*it)->GetCharge();
 		    double hitTime = (*it)->GetTime();
-		    trackHitSyncU.push_back((int)first_wire_U.size()-1);
+		    trackHitSyncU.push_back((int)first_hit_X.size()-1);
 		    hit2DWireNU.push_back(wireN);
 		    hit2DChargeU.push_back(hitCharge);
 		    hit2DTimeU.push_back(hitTime);
@@ -619,7 +619,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		    int wireN = CP::GeomId::Captain::GetWireNumber(geomId);
 		    double hitCharge = (*it)->GetCharge();
 		    double hitTime = (*it)->GetTime();
-		    trackHitSyncV.push_back((int)first_wire_V.size()-1);
+		    trackHitSyncV.push_back((int)first_hit_X.size()-1);
 		    hit2DWireNV.push_back(wireN);
 		    hit2DChargeV.push_back(hitCharge);
 		    hit2DTimeV.push_back(hitTime);
