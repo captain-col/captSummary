@@ -770,6 +770,9 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     first_wire_U.clear();
     first_wire_V.clear();
 
+    trackHitSyncX.clear();
+    trackHitSyncU.clear();
+    trackHitSyncV.clear();
         hit2DWireNX.clear();
  hit2DChargeX.clear();
  hit2DTimeX.clear();
