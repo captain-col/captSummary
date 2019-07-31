@@ -97,7 +97,8 @@ private:
     std::vector<double> PDS_qmax;
     std::vector<double> PDS_event;    
     std::vector<double> PDS_hit_charge;    
-    std::vector<double> PDS_tof;    
+    std::vector<double> PDS_tof;
+  std::vector<int> PDS_coincidence;
 
     std::vector<double> truth_vertex_X;
     std::vector<double> truth_vertex_Y;

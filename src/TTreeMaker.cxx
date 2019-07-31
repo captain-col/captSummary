@@ -337,6 +337,8 @@ hit2DTimeV.clear();
     PDS_qsum.clear();
     PDS_qmax.clear();
     PDS_event.clear();
+    PDS_tof.clear();
+    PDS_coincidence.clear();
 
     truth_vertex_X.clear();
     truth_vertex_Y.clear();
@@ -419,6 +421,8 @@ void CP::TTreeMakerLoop::Initialize(void) {
     tree->Branch("PDS_qSum",&PDS_qsum);
     tree->Branch("PDS_qMax",&PDS_qmax);
     tree->Branch("PDS_event",&PDS_event);
+    tree->Branch("PDS_coincidenceNumber",&PDS_coincidence);
+    tree->Branch("PDS_tof",&PDS_tof);
 
     tree->Branch("truth_vertex_X",&truth_vertex_X);
     tree->Branch("truth_vertex_Y",&truth_vertex_Y);
@@ -442,7 +446,7 @@ void CP::TTreeMakerLoop::Initialize(void) {
 }
 
 bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
-
+  std::cout<<event.GetContext()<<std::endl;
     CP::THandle<CP::TDataVector> dataPMT =
 	event.Get<CP::TDataVector>("~/pmtData");
     CP::THandle<CP::TReconObjectContainer> tracks =
@@ -472,9 +476,11 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     TString pdsEvent = "";
     if(dataPMT){
 	//std::cout<<"PDS size="<<dataPMT->size()<<std::endl;
-
-	for (int i=0; i< int(dataPMT->size()); i++) {
+      //std::cout<<dataPMT->size()<<std::endl;
+ 	for (int i=0; i< int(dataPMT->size()); i++) {
+	  if(int(dataPMT->size())>9999)break;
 	    pdsEvent.Form("~/pmtData/PDSEvent_%d",i);
+	    // std::cout<<i<<"/"<<dataPMT->size()<<std::endl;
 	    CP::THandle<CP::TEvent> eventPMT = event.Get<CP::TEvent>(pdsEvent);
 	    if (!eventPMT) {
 		std::cout<<"NO PMT EVENT"<<std::endl;
@@ -493,6 +499,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		PDS_hit_charge.push_back((eventPMT->Get<CP::TRealDatum>("HitCharge"))->GetValue());
 		PDS_tof.push_back((eventPMT->Get<CP::TRealDatum>("TOF_ns"))->GetValue());
 		PDS_coincNumber.push_back((eventPMT->Get<CP::TRealDatum>("CoincNumber"))->GetValue());
+		PDS_coincidence.push_back((eventPMT->Get<CP::TRealDatum>("CoincNumber"))->GetValue());
 		//std::cout<<"EN="<<(eventPMT->Get<CP::TRealDatum>("eventNumber"))->GetValue()<<std::endl;
 		//std::cout<<"Co="<<(eventPMT->Get<CP::TRealDatum>("CoincNumber"))->GetValue()<<std::endl;
 	    }
@@ -806,6 +813,8 @@ hit2DTimeV.clear();
     PDS_qsum.clear();
     PDS_qmax.clear();
     PDS_event.clear();
+    PDS_tof.clear();
+    PDS_coincidence.clear();
 
     truth_vertex_X.clear();
     truth_vertex_Y.clear();
