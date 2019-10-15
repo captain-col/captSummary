@@ -11,6 +11,16 @@
 #include "TGeometryInfo.hxx"
 #include <TG4PrimaryVertex.hxx>
 #include <TG4Trajectory.hxx>
+#include "TMCDigit.hxx"
+#include "TDigitProxy.hxx"
+#include "TDigitContainer.cxx"
+#include "TDigit.hxx"
+#include <TG4VHit.hxx>
+#include <TG4HitSegment.hxx>
+
+
+#include "THandle.hxx"
+#include "TDatum.hxx"
 
 #include <TEvent.hxx>
 
@@ -340,6 +350,9 @@ hit2DTimeV.clear();
     PDS_tof.clear();
     PDS_coincidence.clear();
 
+    true_traj_Id.clear();
+    track_traj_Id.clear();
+
     truth_vertex_X.clear();
     truth_vertex_Y.clear();
     truth_vertex_Z.clear();
@@ -359,6 +372,9 @@ hit2DTimeV.clear();
     truth_trajectory_last_X.clear();
     truth_trajectory_last_Y.clear();
     truth_trajectory_last_Z.clear();
+
+     truth_particle_ParentId.clear();
+    truth_StartInDriftVolume.clear();
 
     tree = NULL;
 }
@@ -443,6 +459,10 @@ void CP::TTreeMakerLoop::Initialize(void) {
     tree->Branch("truth_trajectory_last_X",&truth_trajectory_last_X);
     tree->Branch("truth_trajectory_last_Y",&truth_trajectory_last_Y);
     tree->Branch("truth_trajectory_last_Z",&truth_trajectory_last_Z);
+
+    tree->Branch("truth_particle_ParentId",&truth_particle_ParentId);
+    tree->Branch("truth_StartInDriftVolume",&truth_StartInDriftVolume);
+
 }
 
 bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
@@ -634,6 +654,60 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 
 		first_wire_X.push_back(firstWireX);
 		first_hit_charge_X.push_back(firstChargeX);
+
+		/*	if(trajs->size()>0){
+		  std::set<const CP::TG4HitSegment*> hitSegments;
+		  for(std::set<CP::THandle<CP::THit>>::iterator it = xHits_set.begin();it!=xHits_set.end();++it){
+		    CP::TMCDigit *mcdigit = (*it)->GetDigit().As<CP::TMCDigit>();
+  
+		    for (CP::TMCDigit::ContributorContainer::const_iterator c = mcdigit->GetContributors().begin(); c !=  mcdigit->GetContributors().end(); ++c) {
+    
+		      const CP::TG4HitSegment* hs = dynamic_cast<const CP::TG4HitSegment*>(*c);
+		      if (!hs) continue;
+		      hitSegments.insert(hs);
+
+  }
+		  }
+		for(std::set<CP::THandle<CP::THit>>::iterator it = uHits_set.begin();it!=uHits_set.end();++it){
+
+		   CP::TMCDigit *mcdigit = (*it)->GetDigit().As<CP::TMCDigit>();
+  
+		    for (CP::TMCDigit::ContributorContainer::const_iterator c = mcdigit->GetContributors().begin(); c !=  mcdigit->GetContributors().end(); ++c) {
+    
+		      const CP::TG4HitSegment* hs = dynamic_cast<const CP::TG4HitSegment*>(*c);
+		      if (!hs) continue;
+		      hitSegments.insert(hs);
+
+  }
+     
+		  }
+		for(std::set<CP::THandle<CP::THit>>::iterator it = vHits_set.begin();it!=vHits_set.end();++it){
+
+		   CP::TMCDigit *mcdigit = (*it)->GetDigit().As<CP::TMCDigit>();
+  
+		    for (CP::TMCDigit::ContributorContainer::const_iterator c = mcdigit->GetContributors().begin(); c !=  mcdigit->GetContributors().end(); ++c) {
+    
+		      const CP::TG4HitSegment* hs = dynamic_cast<const CP::TG4HitSegment*>(*c);
+		      if (!hs) continue;
+		      hitSegments.insert(hs);
+
+  }
+		  }
+		std::vector<std::pair<int,int>> trajMax;
+		for(std::set<const CP::TG4HitSegment*>::const_iterator it=hitSegments.begin();it!=hitSegments.end();++it){
+		  int trajId=(*it)->GetPrimaryTrajectoryId();
+		  bool repeat=0;
+		  for(std::size_t tj=0;tj<trajMax.size();++tj){
+		    if(trajId==tj.first){trajMax[tj].second++;repeat=1;break}
+		  }
+		  if(!repeat){trajMax.push_back(std::make_pair(trajId,1));}  
+		}
+		for(std::size_t tj=0;tj<trajMax.size();++tj){
+		    if(trajId==tj.first){trajMax[tj].second++;repeat=1;break}
+		  }
+		
+		}*/
+		  
 		
 		float tdQdx = -1.0;
 		float tdEdx = -1.0;
@@ -695,7 +769,50 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
     }    
 
 #endif
+
+#define NeutronMCSave
+#ifdef NeutronMCSave
+
+    if(trajs->size()>0){
+      for(CP::TG4TrajectoryContainer::iterator tj=trajs->begin();tj!=trajs->end();++tj){
+        CP::TG4Trajectory p = (*tj).second;
+	double trueLength=sqrt((p.GetFinalPosition().X()-p.GetInitialPosition().X())*(p.GetFinalPosition().X()-p.GetInitialPosition().X())+(p.GetFinalPosition().Y()-p.GetInitialPosition().Y())*(p.GetFinalPosition().Y()-p.GetInitialPosition().Y())+(p.GetFinalPosition().Z()-p.GetInitialPosition().Z())*(p.GetFinalPosition().Z()-p.GetInitialPosition().Z()));
+	if(trueLength>13){
+	truth_particle_PDG.push_back(p.GetPDGEncoding());
+
+	true_traj_Id.push_back((*tj).first);
+		truth_particle_px.push_back(p.GetInitialMomentum().Px());
+		truth_particle_py.push_back(p.GetInitialMomentum().Py());
+		truth_particle_pz.push_back(p.GetInitialMomentum().Pz());
+		truth_particle_E.push_back(p.GetInitialMomentum().E());
+
+		truth_trajectory_first_X.push_back(p.GetInitialPosition().X());
+		truth_trajectory_first_Y.push_back(p.GetInitialPosition().Y());
+		truth_trajectory_first_Z.push_back(p.GetInitialPosition().Z());
+
+		truth_trajectory_last_X.push_back(p.GetFinalPosition().X());
+		truth_trajectory_last_Y.push_back(p.GetFinalPosition().Y());
+		truth_trajectory_last_Z.push_back(p.GetFinalPosition().Z());
+
+		//truth_particle_PDG.push_back(p.GetPDGEncoding());
+		
+		truth_particle_ParentId.push_back(p.GetParentId());
+typedef std::vector<CP::TG4TrajectoryPoint> Points;
+		Points& main_p = p.GetTrajectoryPoints();
+		std::string volume = main_p[0].GetVolumeName();
+		std::string volume1="/Captain_1/Cryostat_0/Liquid_0/mImmersed_0/Drift_0";
+		int inVol=0;
+		if(volume==volume1)inVol=1;
+		truth_StartInDriftVolume.push_back(inVol);
+	}
+	
+      }
+    }
     
+#endif
+    
+
+#ifdef ProtonMCSave
     if (vertex) {
 	for (CP::TG4PrimaryVertexContainer::const_iterator v = vertex->begin(); v != vertex->end(); ++v) {
 	    truth_vertex_X.push_back(v->GetPosition().X());
@@ -758,7 +875,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 	    }	
 	}
     }
-
+#endif
     tree->Fill();
     run = 0;
     evt = 0;
@@ -816,6 +933,9 @@ hit2DTimeV.clear();
     PDS_tof.clear();
     PDS_coincidence.clear();
 
+    true_traj_Id.clear();
+    track_traj_Id.clear();
+
     truth_vertex_X.clear();
     truth_vertex_Y.clear();
     truth_vertex_Z.clear();
@@ -835,6 +955,9 @@ hit2DTimeV.clear();
     truth_trajectory_last_X.clear();
     truth_trajectory_last_Y.clear();
     truth_trajectory_last_Z.clear();
+
+    truth_particle_ParentId.clear();
+    truth_StartInDriftVolume.clear();
 
     return false;
 }
