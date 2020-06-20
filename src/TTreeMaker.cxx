@@ -373,6 +373,10 @@ hit2DTimeV.clear();
     truth_trajectory_last_Y.clear();
     truth_trajectory_last_Z.clear();
 
+        truth_trajectory_last_X_corr.clear();
+    truth_trajectory_last_Y_corr.clear();
+    truth_trajectory_last_Z_corr.clear();
+
      truth_particle_ParentId.clear();
     truth_StartInDriftVolume.clear();
 
@@ -460,6 +464,8 @@ void CP::TTreeMakerLoop::Initialize(void) {
     tree->Branch("truth_trajectory_last_Y",&truth_trajectory_last_Y);
     tree->Branch("truth_trajectory_last_Z",&truth_trajectory_last_Z);
 
+   
+    tree->Branch("truth_particle_Id",&true_traj_Id);
     tree->Branch("truth_particle_ParentId",&truth_particle_ParentId);
     tree->Branch("truth_StartInDriftVolume",&truth_StartInDriftVolume);
 
@@ -627,6 +633,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
 		    double hitCharge = (*it)->GetCharge();
 		    double hitTime = (*it)->GetTime();
 		    trackHitSyncX.push_back((int)first_hit_X.size()-1);
+		    //  std::cout<<wireN<<" "<<hitCharge<<" "<<(int)first_hit_X.size()-1<<std::endl;
 		    hit2DWireNX.push_back(wireN);
 		    hit2DChargeX.push_back(hitCharge);
 		    hit2DTimeX.push_back(hitTime);
@@ -777,7 +784,7 @@ bool CP::TTreeMakerLoop::operator () (CP::TEvent& event) {
       for(CP::TG4TrajectoryContainer::iterator tj=trajs->begin();tj!=trajs->end();++tj){
         CP::TG4Trajectory p = (*tj).second;
 	double trueLength=sqrt((p.GetFinalPosition().X()-p.GetInitialPosition().X())*(p.GetFinalPosition().X()-p.GetInitialPosition().X())+(p.GetFinalPosition().Y()-p.GetInitialPosition().Y())*(p.GetFinalPosition().Y()-p.GetInitialPosition().Y())+(p.GetFinalPosition().Z()-p.GetInitialPosition().Z())*(p.GetFinalPosition().Z()-p.GetInitialPosition().Z()));
-	if(trueLength>13){
+	//	if(trueLength>13){
 	truth_particle_PDG.push_back(p.GetPDGEncoding());
 
 	true_traj_Id.push_back((*tj).first);
@@ -804,7 +811,28 @@ typedef std::vector<CP::TG4TrajectoryPoint> Points;
 		int inVol=0;
 		if(volume==volume1)inVol=1;
 		truth_StartInDriftVolume.push_back(inVol);
-	}
+		if(inVol){
+		  bool corrTrueLastHit=0;
+		  for(std::size_t p=1;p<main_p.size();++p){
+		    std::string vol=main_p[p].GetVolumeName();
+		    if(vol==volume1)continue;
+		    corrTrueLastHit=1;
+		truth_trajectory_last_X_corr.push_back(main_p[p-1].GetPosition().X());
+		truth_trajectory_last_Y_corr.push_back(main_p[p-1].GetPosition().Y());
+		truth_trajectory_last_Z_corr.push_back(main_p[p-1].GetPosition().Z());
+		break;  
+		  }
+		  if(!corrTrueLastHit){
+	        truth_trajectory_last_X_corr.push_back(p.GetFinalPosition().X());
+		truth_trajectory_last_Y_corr.push_back(p.GetFinalPosition().Y());
+		truth_trajectory_last_Z_corr.push_back(p.GetFinalPosition().Z());
+		  }
+		}else{
+		truth_trajectory_last_X_corr.push_back(p.GetFinalPosition().X());
+		truth_trajectory_last_Y_corr.push_back(p.GetFinalPosition().Y());
+		truth_trajectory_last_Z_corr.push_back(p.GetFinalPosition().Z());
+		}
+		//	}
 	
       }
     }
@@ -955,6 +983,10 @@ hit2DTimeV.clear();
     truth_trajectory_last_X.clear();
     truth_trajectory_last_Y.clear();
     truth_trajectory_last_Z.clear();
+
+    truth_trajectory_last_X_corr.clear();
+    truth_trajectory_last_Y_corr.clear();
+    truth_trajectory_last_Z_corr.clear();
 
     truth_particle_ParentId.clear();
     truth_StartInDriftVolume.clear();

@@ -100,6 +100,9 @@ private:
     std::vector<double> PDS_tof;
   std::vector<int> PDS_coincidence;
 
+  std::vector<int> true_traj_Id;
+  std::vector<int> track_traj_Id;
+
     std::vector<double> truth_vertex_X;
     std::vector<double> truth_vertex_Y;
     std::vector<double> truth_vertex_Z;
@@ -120,6 +123,13 @@ private:
     std::vector<double> truth_trajectory_last_Y;
     std::vector<double> truth_trajectory_last_Z;
 
+      std::vector<double> truth_trajectory_last_X_corr;
+    std::vector<double> truth_trajectory_last_Y_corr;
+    std::vector<double> truth_trajectory_last_Z_corr;
+
+  std::vector<int> truth_particle_ParentId;
+  std::vector<int> truth_StartInDriftVolume;
+ 
 
     TChain *chainz = new TChain("new_tree");   
     Int_t entryPDS = 0;
